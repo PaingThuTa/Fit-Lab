@@ -1,0 +1,73 @@
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import Card from '../../components/Card'
+import Input from '../../components/Input'
+import Button from '../../components/Button'
+import { useAuthStore } from '../../store/useAuthStore'
+
+const Register = () => {
+  const [form, setForm] = useState({ name: '', email: '', interest: 'training' })
+  const navigate = useNavigate()
+  const setRole = useAuthStore((state) => state.setRole)
+
+  const handleChange = (event) => {
+    const { name, value } = event.target
+    setForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    const role = form.interest === 'coaching' ? 'trainer' : 'member'
+    setRole(role, form.name || 'Fit-Lab User')
+    navigate(`/${role}`)
+  }
+
+  return (
+    <div className="mx-auto grid max-w-4xl gap-8 py-10 lg:grid-cols-2">
+      <Card title="Create an account" description="Just a few details to personalize your view">
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <Input label="Full name" name="name" placeholder="Avery Cole" value={form.name} onChange={handleChange} />
+          <Input
+            label="Email"
+            type="email"
+            name="email"
+            placeholder="you@Fit-Lab.app"
+            value={form.email}
+            onChange={handleChange}
+          />
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Primary interest
+            <select
+              name="interest"
+              value={form.interest}
+              onChange={handleChange}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            >
+              <option value="training">Finding training programs</option>
+              <option value="coaching">Coaching other members</option>
+            </select>
+          </label>
+          <Button type="submit" className="w-full">
+            Continue
+          </Button>
+        </form>
+        <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
+          Already onboard?{' '}
+          <Link to="/login" className="font-semibold text-primary-600">
+            Log in
+          </Link>
+        </p>
+      </Card>
+      <div className="hidden flex-col justify-center rounded-3xl bg-gradient-to-br from-slate-900 to-primary-700 p-8 text-white lg:flex">
+        <h3 className="text-2xl font-semibold">Why Fit-Lab?</h3>
+        <ul className="mt-6 space-y-4 text-sm text-white/80">
+          <li>• Access curated workouts from verified trainers.</li>
+          <li>• Manage your courses, rosters, and enrollments in one place.</li>
+          <li>• Admin dashboards reveal adoption and approvals at a glance.</li>
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+export default Register
