@@ -1,16 +1,21 @@
 import Card from '../../components/Card'
-import { courses, enrollments, users, trainerApplicants } from '../../data/mockData'
+import { courses, enrollments, users } from '../../data/mockData'
+import { useAuthStore } from '../../store/useAuthStore'
 
 const AdminDashboard = () => {
-  const memberCount = users.filter((user) => user.role === 'member').length
-  const trainerCount = users.filter((user) => user.role === 'trainer').length
-  const pendingTrainerProposals = trainerApplicants.length
+  const currentUser = useAuthStore((state) => state.user)
+  const applications = useAuthStore((state) => state.trainerApplications)
+  const allUsers = currentUser && !users.some((user) => user.email === currentUser.email) ? [currentUser, ...users] : users
+  const memberCount = allUsers.filter((user) => user.role === 'member').length
+  const trainerCount = allUsers.filter((user) => user.role === 'trainer').length
+  const pendingTrainerProposals = applications.filter((application) => application.status === 'pending').length
+  const approvedTrainerProposals = applications.filter((application) => application.status === 'approved').length
   const stats = [
-    { label: 'Total users', value: users.length },
+    { label: 'Total users', value: allUsers.length },
     { label: 'Total members', value: memberCount },
     { label: 'Total trainers', value: trainerCount },
     { label: 'Pending trainer proposals', value: pendingTrainerProposals },
-    { label: 'Approved trainers', value: Math.max(trainerCount - pendingTrainerProposals, 0) },
+    { label: 'Approved trainer proposals', value: approvedTrainerProposals },
     { label: 'Total courses', value: courses.length },
     { label: 'Total enrollments', value: enrollments.length },
   ]

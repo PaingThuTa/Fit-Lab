@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
@@ -12,18 +12,10 @@ const MemberMessages = () => {
     const ownThreads = messageThreads.filter((thread) => thread.memberName === currentName)
     return ownThreads.length ? ownThreads : messageThreads
   }, [currentName])
-  const [selectedId, setSelectedId] = useState(threads[0]?.id ?? null)
-  const selectedThread = threads.find((thread) => thread.id === selectedId)
-
-  useEffect(() => {
-    if (threads.length === 0) {
-      setSelectedId(null)
-      return
-    }
-    const exists = threads.some((thread) => thread.id === selectedId)
-    if (!exists) {
-      setSelectedId(threads[0].id)
-    }
+  const [selectedId, setSelectedId] = useState(null)
+  const selectedThread = useMemo(() => {
+    if (threads.length === 0) return null
+    return threads.find((thread) => thread.id === selectedId) ?? threads[0]
   }, [threads, selectedId])
 
   return (
@@ -36,7 +28,7 @@ const MemberMessages = () => {
               key={thread.id}
               onClick={() => setSelectedId(thread.id)}
               className={`w-full rounded-2xl border px-4 py-3 text-left transition hover:border-primary-300 hover:bg-primary-50 dark:hover:bg-slate-800 ${
-                selectedId === thread.id
+                selectedThread?.id === thread.id
                   ? 'border-primary-300 bg-primary-50 text-primary-900 dark:border-primary-400 dark:bg-slate-800'
                   : 'border-slate-100 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200'
               }`}

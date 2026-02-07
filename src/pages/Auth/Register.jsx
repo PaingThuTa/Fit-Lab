@@ -9,6 +9,7 @@ const Register = () => {
   const [form, setForm] = useState({ name: '', email: '', interest: 'training' })
   const navigate = useNavigate()
   const setRole = useAuthStore((state) => state.setRole)
+  const createTrainerApplication = useAuthStore((state) => state.createTrainerApplication)
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -17,9 +18,23 @@ const Register = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    const role = form.interest === 'coaching' ? 'trainer' : 'member'
-    setRole(role, form.name || 'Fit-Lab User')
-    navigate(`/${role}`)
+    const isCoachingInterest = form.interest === 'coaching'
+    const name = form.name || 'Fit-Lab User'
+    setRole('member', name, form.email)
+
+    if (isCoachingInterest) {
+      createTrainerApplication({
+        name,
+        email: form.email,
+        specialties: [],
+        certifications: [],
+        submitted: 'Today',
+      })
+      navigate('/trainer/proposal')
+      return
+    }
+
+    navigate('/member')
   }
 
   return (
@@ -62,8 +77,9 @@ const Register = () => {
         <h3 className="text-2xl font-semibold">Why Fit-Lab?</h3>
         <ul className="mt-6 space-y-4 text-sm text-white/80">
           <li>• Access curated workouts from verified trainers.</li>
-          <li>• Manage your courses, rosters, and enrollments in one place.</li>
-          <li>• Admin dashboards reveal adoption and approvals at a glance.</li>
+          <li>• Apply as a trainer with a proposal reviewed by admins.</li>
+          <li>• Manage courses, rosters, and enrollments in one place once approved.</li>
+          <li>• Admin dashboards reveal adoption and proposal approvals at a glance.</li>
         </ul>
       </div>
     </div>

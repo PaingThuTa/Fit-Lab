@@ -6,12 +6,35 @@ import { useAuthStore } from '../../store/useAuthStore'
 
 const Home = () => {
   const user = useAuthStore((state) => state.user)
+  const applications = useAuthStore((state) => state.trainerApplications)
   const currentName = user?.name ?? 'Jordan Wells'
   const myEnrollments = enrollments.filter((item) => item.memberName === currentName)
+  const myTrainerApplication = applications.find((application) => {
+    if (user?.email?.trim()) {
+      return application.email?.toLowerCase() === user.email.toLowerCase()
+    }
+    return application.name.toLowerCase() === currentName.toLowerCase()
+  })
 
   return (
     <div className="grid gap-8 lg:grid-cols-[280px,1fr]">
       <div className="space-y-4">
+        {myTrainerApplication ? (
+          <div className="rounded-2xl border border-primary-200 bg-primary-50 p-4 dark:border-primary-400/40 dark:bg-slate-900">
+            <p className="text-xs uppercase tracking-[0.25em] text-primary-600 dark:text-primary-300">
+              Trainer application
+            </p>
+            <p className="mt-2 text-sm font-semibold capitalize text-slate-900 dark:text-white">
+              Status: {myTrainerApplication.status}
+            </p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+              Update your proposal or check review status.
+            </p>
+            <Button as={Link} to="/trainer/proposal" variant="outline" className="mt-3 w-full justify-start">
+              Open trainer proposal
+            </Button>
+          </div>
+        ) : null}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <p className="text-xs uppercase tracking-[0.25em] text-slate-400">Member tools</p>
           <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">Your shortcuts</h1>

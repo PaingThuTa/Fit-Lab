@@ -19,6 +19,7 @@ import CreateCourse from './pages/Trainer/CreateCourse'
 import EditCourse from './pages/Trainer/EditCourse'
 import Enrollments from './pages/Trainer/Enrollments'
 import TrainerMessages from './pages/Trainer/Messages'
+import TrainerProposal from './pages/Trainer/Proposal'
 
 import AdminDashboard from './pages/Admin/Dashboard'
 import UsersList from './pages/Admin/UsersList'
@@ -86,6 +87,11 @@ const router = createBrowserRouter([
           { path: 'profile', element: <Profile /> },
           { path: 'messages', element: <MemberMessages /> },
         ],
+      },
+      {
+        path: 'trainer/proposal',
+        element: <ProtectedLayout allowedRoles={['member', 'trainer']} />,
+        children: [{ index: true, element: <TrainerProposal /> }],
       },
       {
         path: 'trainer',

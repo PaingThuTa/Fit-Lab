@@ -4,10 +4,16 @@ import Card from '../../components/Card'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
 import { courses } from '../../data/mockData'
+import { useAuthStore } from '../../store/useAuthStore'
 
 const EditCourse = () => {
   const { courseId } = useParams()
-  const course = useMemo(() => courses.find((item) => item.id === courseId), [courseId])
+  const user = useAuthStore((state) => state.user)
+  const trainerName = user?.name ?? 'Avery Cole'
+  const course = useMemo(
+    () => courses.find((item) => item.id === courseId && item.trainerName === trainerName),
+    [courseId, trainerName]
+  )
 
   if (!course) {
     return <Card title="Course not found" description="Pick a course from the overview list." />

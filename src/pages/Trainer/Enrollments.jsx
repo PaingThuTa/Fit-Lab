@@ -2,8 +2,16 @@ import Card from '../../components/Card'
 import Button from '../../components/Button'
 import { enrollments, courses } from '../../data/mockData'
 import { Link } from 'react-router-dom'
+import { useAuthStore } from '../../store/useAuthStore'
 
 const Enrollments = () => {
+  const user = useAuthStore((state) => state.user)
+  const trainerName = user?.name ?? 'Avery Cole'
+  const trainerCourses = courses.filter((course) => course.trainerName === trainerName)
+  const trainerEnrollments = enrollments.filter((enrollment) =>
+    trainerCourses.some((course) => course.id === enrollment.courseId)
+  )
+
   return (
     <Card title="Enrolled members" description="Snapshot of who is in your programs">
       <table className="w-full text-left text-sm">
@@ -16,7 +24,7 @@ const Enrollments = () => {
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-          {enrollments.map((enrollment) => {
+          {trainerEnrollments.map((enrollment) => {
             const course = courses.find((item) => item.id === enrollment.courseId)
             return (
               <tr key={enrollment.id} className="text-slate-600 dark:text-slate-300">
@@ -40,6 +48,9 @@ const Enrollments = () => {
           })}
         </tbody>
       </table>
+      {trainerEnrollments.length === 0 ? (
+        <p className="mt-3 text-sm text-slate-500">No member enrollments for your courses yet.</p>
+      ) : null}
     </Card>
   )
 }

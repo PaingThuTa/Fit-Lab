@@ -17,7 +17,7 @@ const Login = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    login({ name: form.name || 'Fit-Lab Member', role: form.role })
+    login({ name: form.name || 'Fit-Lab Member', role: form.role, email: form.email })
     navigate(`/${form.role}`)
   }
 

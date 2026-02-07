@@ -6,11 +6,14 @@ import { useAuthStore } from '../../store/useAuthStore'
 const TrainerDashboard = () => {
   const user = useAuthStore((state) => state.user)
   const trainerName = user?.name ?? 'Avery Cole'
+  const trainerCourses = courses.filter((course) => course.trainerName === trainerName)
   const trainerThreads = messageThreads.filter((thread) => thread.trainerName === trainerName)
-  const totalEnrollments = enrollments.length
+  const totalEnrollments = enrollments.filter((enrollment) =>
+    trainerCourses.some((course) => course.id === enrollment.courseId)
+  ).length
   const memberMessages = trainerThreads.length
   const metrics = [
-    { label: 'Live courses', value: courses.length, trend: 'Create or edit cohorts' },
+    { label: 'Live courses', value: trainerCourses.length, trend: 'Create or edit cohorts' },
     { label: 'Enrollments', value: totalEnrollments, trend: 'Track member progress' },
     { label: 'Member messages', value: memberMessages, trend: 'Respond to DMs' },
   ]
@@ -35,7 +38,7 @@ const TrainerDashboard = () => {
       </div>
       <Card title="Courses" description="See enrollments per cohort">
         <div className="space-y-4">
-          {courses.map((course) => (
+          {trainerCourses.map((course) => (
             <div key={course.id} className="flex flex-wrap items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800">
               <div>
                 <p className="font-medium text-slate-900 dark:text-white">{course.title}</p>
