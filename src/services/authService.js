@@ -115,9 +115,24 @@ export async function register({ fullName, email, password }) {
 
 export async function getMe() {
   if (useApiMode) {
-    const payload = await apiRequest('/auth/me')
-    const user = mapApiUser(payload.user)
-    return toStoreUser(user)
+    const token = authTokenStorage.get()
+
+    if (!token) {
+      return null
+    }
+
+    try {
+      const payload = await apiRequest('/auth/me', { token })
+      const user = mapApiUser(payload.user)
+      return toStoreUser(user)
+    } catch (error) {
+      if (error?.status === 401) {
+        authTokenStorage.clear()
+        return null
+      }
+
+      throw error
+    }
   }
 
   return readMockUser()

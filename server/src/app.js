@@ -1,36 +1,46 @@
 const express = require('express');
-const cors = require('cors');
 const apiRouter = require('./routes');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+const normalizeOrigin = (origin) => origin.trim().replace(/\/+$/, '').toLowerCase();
+const defaultAllowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+const allowedOrigins = (process.env.CORS_ORIGIN || defaultAllowedOrigins.join(','))
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
+const allowedOriginSet = new Set(allowedOrigins.map(normalizeOrigin));
 
-const corsOptions = {
-  origin(origin, callback) {
-    // Allow non-browser clients and same-origin requests with no Origin header.
-    if (!origin) {
-      return callback(null, true);
+app.use((req, res, next) => {
+  const requestOrigin = req.headers.origin;
+  const normalizedRequestOrigin = requestOrigin ? normalizeOrigin(requestOrigin) : '';
+  const isAllowedRequestOrigin = requestOrigin && allowedOriginSet.has(normalizedRequestOrigin);
+  const allowOrigin = isAllowedRequestOrigin ? requestOrigin : allowedOrigins[0];
+  const requestedHeaders = req.headers['access-control-request-headers'];
+
+  if (!requestOrigin || isAllowedRequestOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', allowOrigin);
+    res.setHeader('Vary', 'Origin');
+  }
+
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    requestedHeaders || 'Content-Type,Authorization'
+  );
+
+  if (req.method === 'OPTIONS') {
+    if (requestOrigin && !isAllowedRequestOrigin) {
+      return res.status(403).json({ message: `Origin ${requestOrigin} is not allowed by CORS` });
     }
 
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
+    return res.sendStatus(204);
+  }
 
-    return callback(new Error(`Origin ${origin} is not allowed by CORS`));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 204,
-};
-
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+  return next();
+});
 app.use(express.json());
 app.use('/api', apiRouter);
 

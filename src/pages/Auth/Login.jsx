@@ -23,12 +23,19 @@ const Login = () => {
     setError('')
 
     try {
-      const user = await login({
-        name: form.name || 'Fit-Lab Member',
-        role: form.role,
-        email: form.email,
-        password: form.password,
-      })
+      const user = await login(
+        useApiMode
+          ? {
+              email: form.email,
+              password: form.password,
+            }
+          : {
+              name: form.name || 'Fit-Lab Member',
+              role: form.role,
+              email: form.email,
+              password: form.password,
+            }
+      )
       navigate(`/${user.role}`)
     } catch (submitError) {
       setError(submitError.message || 'Unable to login')
@@ -41,13 +48,23 @@ const Login = () => {
         <p className="text-sm uppercase tracking-[0.3em] text-white/80">Welcome back</p>
         <h2 className="mt-4 text-3xl font-semibold">Train smarter with Fit-Lab</h2>
         <p className="mt-3 text-white/80">
-          Preview your dashboard instantly by choosing a role below. This login experience is only a front-end
-          prototype for now.
+          {useApiMode
+            ? 'Sign in with your account to access your personalized dashboard.'
+            : 'Preview your dashboard instantly by choosing a role below. This login experience is only a front-end prototype for now.'}
         </p>
       </div>
-      <Card title="Login" description="Choose a role to explore the experience">
+      <Card
+        title="Login"
+        description={
+          useApiMode
+            ? 'Use your email and password to continue.'
+            : 'Choose a role to explore the experience.'
+        }
+      >
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <Input label="Name" name="name" placeholder="Jordan Wells" value={form.name} onChange={handleChange} />
+          {!useApiMode && (
+            <Input label="Name" name="name" placeholder="Jordan Wells" value={form.name} onChange={handleChange} />
+          )}
           <Input
             label="Email"
             type="email"

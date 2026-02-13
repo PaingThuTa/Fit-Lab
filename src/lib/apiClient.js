@@ -33,14 +33,15 @@ export async function apiRequest(path, options = {}) {
   const { method = 'GET', body, query, headers = {}, token } = options
 
   const authToken = token || authTokenStorage.get()
+  const hasBody = body !== undefined
   const response = await fetch(buildUrl(path, query), {
     method,
     headers: {
-      'Content-Type': 'application/json',
+      ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
       ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       ...headers,
     },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: hasBody ? JSON.stringify(body) : undefined,
   })
 
   const isJson = response.headers.get('content-type')?.includes('application/json')
