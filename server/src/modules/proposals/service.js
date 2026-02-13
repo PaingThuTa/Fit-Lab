@@ -1,0 +1,123 @@
+const pool = require('../../config/db');
+const AppError = require('../../utils/appError');
+const { updateUserRole } = require('../users/repository');
+const repository = require('./repository');
+
+function mapProposal(row) {
+  return {
+    proposalId: row.proposal_id,
+    userId: row.user_id,
+    applicantName: row.applicant_name,
+    applicantEmail: row.applicant_email,
+    message: row.message,
+    specialties: row.specialties || [],
+    certifications: row.certifications || [],
+    experienceYears: row.experience_years,
+    sampleCourse: row.sample_course,
+    bio: row.bio,
+    status: String(row.status || '').toLowerCase(),
+    reviewId: row.review_id,
+    reviewerName: row.reviewer_name,
+    reviewedAt: row.reviewed_at,
+    rejectionReason: row.rejection_reason,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function normalizeList(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+async function getMyProposal(userId) {
+  const proposal = await repository.findProposalByUserId(userId);
+  return proposal ? mapProposal(proposal) : null;
+}
+
+async function upsertMyProposal(userId, payload) {
+  const message = String(payload.message || payload.bio || '').trim();
+  const specialties = normalizeList(payload.specialties);
+  const certifications = normalizeList(payload.certifications);
+  const experienceYears = Number(payload.experienceYears || 0);
+  const sampleCourse = payload.sampleCourse ? String(payload.sampleCourse).trim() : null;
+  const bio = payload.bio ? String(payload.bio).trim() : null;
+
+  if (!message) {
+    throw new AppError(400, 'message or bio is required');
+  }
+
+  await repository.upsertProposal({
+    userId,
+    message,
+    specialties,
+    certifications,
+    experienceYears,
+    sampleCourse,
+    bio,
+  });
+
+  return getMyProposal(userId);
+}
+
+async function listAdminProposals() {
+  const proposals = await repository.listProposalsForAdmin();
+  return proposals.map(mapProposal);
+}
+
+async function decideProposal({ proposalId, action, reviewId, rejectionReason }) {
+  const proposal = await repository.findProposalById(proposalId);
+
+  if (!proposal) {
+    throw new AppError(404, 'Proposal not found');
+  }
+
+  if (!['approve', 'reject'].includes(action)) {
+    throw new AppError(400, 'action must be approve or reject');
+  }
+
+  const status = action === 'approve' ? 'APPROVED' : 'REJECTED';
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const updatedProposal = await repository.updateProposalDecision(client, {
+      proposalId,
+      status,
+      reviewId,
+      rejectionReason: action === 'reject' ? rejectionReason || null : null,
+    });
+
+    if (status === 'APPROVED') {
+      await updateUserRole({ userId: updatedProposal.user_id, role: 'TRAINER', client });
+    }
+
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+
+  const proposals = await listAdminProposals();
+  return proposals.find((item) => item.proposalId === proposalId) || null;
+}
+
+module.exports = {
+  getMyProposal,
+  upsertMyProposal,
+  listAdminProposals,
+  decideProposal,
+};

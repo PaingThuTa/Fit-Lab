@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "lint": "npm run lint:frontend && npm run lint:server",
+    "lint:frontend": "eslint src",
+    "lint:server": "eslint server/src server/scripts",
+    "preview": "vite preview",
+    "smoke": "node scripts/render-app.mjs"
   },
   "dependencies": {
     "react": "^19.2.0",

@@ -5,6 +5,7 @@ import { useAuthStore } from './store/useAuthStore'
 
 const App = () => {
   const theme = useAuthStore((state) => state.theme)
+  const hydrateAuth = useAuthStore((state) => state.hydrateAuth)
 
   useEffect(() => {
     const root = document.documentElement
@@ -14,6 +15,10 @@ const App = () => {
       root.classList.remove('dark')
     }
   }, [theme])
+
+  useEffect(() => {
+    hydrateAuth()
+  }, [hydrateAuth])
 
   return <RouterProvider router={router} />
 }

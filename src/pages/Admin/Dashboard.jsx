@@ -1,23 +1,51 @@
+import { useEffect, useState } from 'react'
 import Card from '../../components/Card'
-import { courses, enrollments, users } from '../../data/mockData'
-import { useAuthStore } from '../../store/useAuthStore'
+import { getAdminDashboard } from '../../services/adminService'
 
 const AdminDashboard = () => {
-  const currentUser = useAuthStore((state) => state.user)
-  const applications = useAuthStore((state) => state.trainerApplications)
-  const allUsers = currentUser && !users.some((user) => user.email === currentUser.email) ? [currentUser, ...users] : users
-  const memberCount = allUsers.filter((user) => user.role === 'member').length
-  const trainerCount = allUsers.filter((user) => user.role === 'trainer').length
-  const pendingTrainerProposals = applications.filter((application) => application.status === 'pending').length
-  const approvedTrainerProposals = applications.filter((application) => application.status === 'approved').length
+  const [dashboard, setDashboard] = useState(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+    const loadDashboard = async () => {
+      setError('')
+      try {
+        const payload = await getAdminDashboard()
+        if (mounted) {
+          setDashboard(payload)
+        }
+      } catch (loadError) {
+        if (mounted) {
+          setError(loadError.message || 'Unable to load admin dashboard')
+        }
+      }
+    }
+
+    loadDashboard()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const statsSource = dashboard || {
+    totalUsers: 0,
+    totalMembers: 0,
+    totalTrainers: 0,
+    pendingTrainerProposals: 0,
+    approvedTrainerProposals: 0,
+    totalCourses: 0,
+    totalEnrollments: 0,
+  }
+
   const stats = [
-    { label: 'Total users', value: allUsers.length },
-    { label: 'Total members', value: memberCount },
-    { label: 'Total trainers', value: trainerCount },
-    { label: 'Pending trainer proposals', value: pendingTrainerProposals },
-    { label: 'Approved trainer proposals', value: approvedTrainerProposals },
-    { label: 'Total courses', value: courses.length },
-    { label: 'Total enrollments', value: enrollments.length },
+    { label: 'Total users', value: statsSource.totalUsers },
+    { label: 'Total members', value: statsSource.totalMembers },
+    { label: 'Total trainers', value: statsSource.totalTrainers },
+    { label: 'Pending trainer proposals', value: statsSource.pendingTrainerProposals },
+    { label: 'Approved trainer proposals', value: statsSource.approvedTrainerProposals },
+    { label: 'Total courses', value: statsSource.totalCourses },
+    { label: 'Total enrollments', value: statsSource.totalEnrollments },
   ]
 
   return (
@@ -26,6 +54,7 @@ const AdminDashboard = () => {
         <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">Admin overview</h1>
         <p className="text-sm text-slate-500">Audit courses, review trainer proposals, and monitor member activity.</p>
       </div>
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <div className="grid gap-4 md:grid-cols-3">
         {stats.map((stat) => (
           <Card key={stat.label}>

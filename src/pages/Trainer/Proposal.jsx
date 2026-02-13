@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Card from '../../components/Card'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
 import { useAuthStore } from '../../store/useAuthStore'
+import { getMyProposal, upsertMyProposal } from '../../services/proposalService'
 
 const parseCommaValues = (value) =>
   value
@@ -13,25 +15,46 @@ const parseCommaValues = (value) =>
 
 const Proposal = () => {
   const user = useAuthStore((state) => state.user)
-  const applications = useAuthStore((state) => state.trainerApplications)
-  const createTrainerApplication = useAuthStore((state) => state.createTrainerApplication)
+  const [existingApplication, setExistingApplication] = useState(null)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [saving, setSaving] = useState(false)
 
-  const existingApplication = useMemo(() => {
-    if (!user) return null
-    return applications.find((applicant) => {
-      if (user.email?.trim()) {
-        return applicant.email?.toLowerCase() === user.email.toLowerCase()
+  useEffect(() => {
+    let mounted = true
+    const loadProposal = async () => {
+      setError('')
+      try {
+        const proposal = await getMyProposal({ currentUser: user })
+        if (mounted) {
+          setExistingApplication(proposal)
+          setForm({
+            specialties: proposal?.specialties?.join(', ') || '',
+            certifications: proposal?.certifications?.join(', ') || '',
+            experienceYears: String(proposal?.experienceYears || ''),
+            sampleCourse: proposal?.sampleCourse || '',
+            bio: proposal?.bio || '',
+          })
+        }
+      } catch (loadError) {
+        if (mounted) {
+          setError(loadError.message || 'Unable to load proposal')
+        }
       }
-      return applicant.name.toLowerCase() === user.name.toLowerCase()
-    })
-  }, [applications, user])
+    }
+
+    loadProposal()
+    return () => {
+      mounted = false
+    }
+  }, [user])
 
   const [form, setForm] = useState({
-    specialties: existingApplication?.specialties?.join(', ') || '',
-    certifications: existingApplication?.certifications?.join(', ') || '',
-    experienceYears: String(existingApplication?.experienceYears || ''),
-    sampleCourse: existingApplication?.sampleCourse || '',
-    bio: existingApplication?.bio || '',
+    specialties: '',
+    certifications: '',
+    experienceYears: '',
+    sampleCourse: '',
+    bio: '',
   })
 
   const handleChange = (event) => {
@@ -39,18 +62,30 @@ const Proposal = () => {
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    createTrainerApplication({
-      name: user?.name || 'Trainer Applicant',
-      email: user?.email || '',
-      specialties: parseCommaValues(form.specialties),
-      certifications: parseCommaValues(form.certifications),
-      experienceYears: Number(form.experienceYears) || 0,
-      sampleCourse: form.sampleCourse.trim(),
-      bio: form.bio.trim(),
-      submitted: 'Today',
-    })
+    setSaving(true)
+    setError('')
+    setNotice('')
+
+    try {
+      const proposal = await upsertMyProposal(
+        {
+          specialties: parseCommaValues(form.specialties),
+          certifications: parseCommaValues(form.certifications),
+          experienceYears: Number(form.experienceYears) || 0,
+          sampleCourse: form.sampleCourse.trim(),
+          bio: form.bio.trim(),
+        },
+        { currentUser: user }
+      )
+      setExistingApplication(proposal)
+      setNotice('Proposal submitted for admin review.')
+    } catch (submitError) {
+      setError(submitError.message || 'Unable to submit proposal')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const status = existingApplication?.status || 'not-submitted'
@@ -108,11 +143,13 @@ const Proposal = () => {
             />
           </label>
           <div className="md:col-span-2 flex flex-wrap gap-3">
-            <Button type="submit">Submit proposal</Button>
+            <Button type="submit">{saving ? 'Submitting...' : 'Submit proposal'}</Button>
             <Button as={Link} to="/member" variant="outline">
               Back to member home
             </Button>
           </div>
+          {error ? <p className="md:col-span-2 text-sm text-red-600">{error}</p> : null}
+          {notice ? <p className="md:col-span-2 text-sm text-emerald-600">{notice}</p> : null}
         </form>
       </Card>
     </div>

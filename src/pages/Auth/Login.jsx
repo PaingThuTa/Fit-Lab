@@ -4,10 +4,13 @@ import Card from '../../components/Card'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
 import { useAuthStore } from '../../store/useAuthStore'
+import { useApiMode } from '../../lib/dataMode'
 
 const Login = () => {
   const [form, setForm] = useState({ email: '', password: '', name: '', role: 'member' })
+  const [error, setError] = useState('')
   const login = useAuthStore((state) => state.login)
+  const authLoading = useAuthStore((state) => state.authLoading)
   const navigate = useNavigate()
 
   const handleChange = (event) => {
@@ -15,10 +18,21 @@ const Login = () => {
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    login({ name: form.name || 'Fit-Lab Member', role: form.role, email: form.email })
-    navigate(`/${form.role}`)
+    setError('')
+
+    try {
+      const user = await login({
+        name: form.name || 'Fit-Lab Member',
+        role: form.role,
+        email: form.email,
+        password: form.password,
+      })
+      navigate(`/${user.role}`)
+    } catch (submitError) {
+      setError(submitError.message || 'Unable to login')
+    }
   }
 
   return (
@@ -50,21 +64,24 @@ const Login = () => {
             value={form.password}
             onChange={handleChange}
           />
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-            Role
-            <select
-              name="role"
-              value={form.role}
-              onChange={handleChange}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-            >
-              <option value="member">Member</option>
-              <option value="trainer">Trainer</option>
-              <option value="admin">Admin</option>
-            </select>
-          </label>
+          {!useApiMode && (
+            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              Role
+              <select
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              >
+                <option value="member">Member</option>
+                <option value="trainer">Trainer</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+          )}
+          {error ? <p className="text-sm text-red-600">{error}</p> : null}
           <Button type="submit" className="w-full">
-            Continue as {form.role}
+            {authLoading ? 'Signing in...' : `Continue${useApiMode ? '' : ` as ${form.role}`}`}
           </Button>
         </form>
         <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">

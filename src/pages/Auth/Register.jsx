@@ -6,35 +6,34 @@ import Button from '../../components/Button'
 import { useAuthStore } from '../../store/useAuthStore'
 
 const Register = () => {
-  const [form, setForm] = useState({ name: '', email: '', interest: 'training' })
+  const [form, setForm] = useState({ name: '', email: '', password: '', interest: 'training' })
+  const [error, setError] = useState('')
   const navigate = useNavigate()
-  const setRole = useAuthStore((state) => state.setRole)
-  const createTrainerApplication = useAuthStore((state) => state.createTrainerApplication)
+  const register = useAuthStore((state) => state.register)
+  const authLoading = useAuthStore((state) => state.authLoading)
 
   const handleChange = (event) => {
     const { name, value } = event.target
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    const isCoachingInterest = form.interest === 'coaching'
-    const name = form.name || 'Fit-Lab User'
-    setRole('member', name, form.email)
+    setError('')
 
-    if (isCoachingInterest) {
-      createTrainerApplication({
-        name,
+    try {
+      await register({
+        fullName: form.name || 'Fit-Lab User',
         email: form.email,
-        specialties: [],
-        certifications: [],
-        submitted: 'Today',
+        password: form.password || 'Member123!',
       })
-      navigate('/trainer/proposal')
+    } catch (submitError) {
+      setError(submitError.message || 'Unable to register')
       return
     }
 
-    navigate('/member')
+    const isCoachingInterest = form.interest === 'coaching'
+    navigate(isCoachingInterest ? '/trainer/proposal' : '/member')
   }
 
   return (
@@ -50,6 +49,14 @@ const Register = () => {
             value={form.email}
             onChange={handleChange}
           />
+          <Input
+            label="Password"
+            type="password"
+            name="password"
+            placeholder="At least 8 characters"
+            value={form.password}
+            onChange={handleChange}
+          />
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
             Primary interest
             <select
@@ -62,8 +69,9 @@ const Register = () => {
               <option value="coaching">Coaching other members</option>
             </select>
           </label>
+          {error ? <p className="text-sm text-red-600">{error}</p> : null}
           <Button type="submit" className="w-full">
-            Continue
+            {authLoading ? 'Creating account...' : 'Continue'}
           </Button>
         </form>
         <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">

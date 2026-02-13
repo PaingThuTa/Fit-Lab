@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
@@ -52,6 +53,15 @@ const AppLayout = () => (
 
 const ProtectedLayout = ({ allowedRoles, sidebarLinks, sidebarTitle }) => {
   const role = useAuthStore((state) => state.role)
+  const authReady = useAuthStore((state) => state.authReady)
+
+  if (!authReady) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">
+        Loading session...
+      </div>
+    )
+  }
 
   const isAllowed = role && allowedRoles.includes(role)
   if (!role || !isAllowed) {
