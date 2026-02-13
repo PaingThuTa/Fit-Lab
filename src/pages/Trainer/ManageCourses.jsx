@@ -1,13 +1,36 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
-import { courses } from '../../data/mockData'
 import { useAuthStore } from '../../store/useAuthStore'
+import { listCourses } from '../../services/courseService'
 
 const ManageCourses = () => {
   const user = useAuthStore((state) => state.user)
-  const trainerName = user?.name ?? 'Avery Cole'
-  const trainerCourses = courses.filter((course) => course.trainerName === trainerName)
+  const [trainerCourses, setTrainerCourses] = useState([])
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+    const loadCourses = async () => {
+      setError('')
+      try {
+        const nextCourses = await listCourses({ mine: true, trainerId: user?.userId || user?.name })
+        if (mounted) {
+          setTrainerCourses(nextCourses)
+        }
+      } catch (loadError) {
+        if (mounted) {
+          setError(loadError.message || 'Unable to load courses')
+        }
+      }
+    }
+
+    loadCourses()
+    return () => {
+      mounted = false
+    }
+  }, [user])
 
   return (
     <div className="space-y-6">
@@ -20,6 +43,7 @@ const ManageCourses = () => {
           New course
         </Button>
       </div>
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <Card>
         <table className="w-full text-left text-sm">
           <thead className="text-xs uppercase text-slate-400">

@@ -1,14 +1,39 @@
+import { useCallback, useEffect, useState } from 'react'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
-import { useAuthStore } from '../../store/useAuthStore'
+import { getTrainerProposals, reviewTrainerProposal } from '../../services/adminService'
 
 const TrainerApproval = () => {
-  const trainerApplications = useAuthStore((state) => state.trainerApplications)
-  const approveTrainerApplication = useAuthStore((state) => state.approveTrainerApplication)
-  const declineTrainerApplication = useAuthStore((state) => state.declineTrainerApplication)
+  const [trainerApplications, setTrainerApplications] = useState([])
+  const [error, setError] = useState('')
+
+  const loadProposals = useCallback(async () => {
+    setError('')
+    try {
+      const proposals = await getTrainerProposals()
+      setTrainerApplications(proposals)
+    } catch (loadError) {
+      setError(loadError.message || 'Unable to load trainer proposals')
+    }
+  }, [])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadProposals()
+  }, [loadProposals])
+
+  const handleReview = async (proposalId, action) => {
+    try {
+      await reviewTrainerProposal({ proposalId, action })
+      await loadProposals()
+    } catch (reviewError) {
+      setError(reviewError.message || 'Unable to review proposal')
+    }
+  }
 
   return (
     <Card title="Trainer approvals" description="Review pending submissions">
+      {error ? <p className="mb-3 text-sm text-red-600">{error}</p> : null}
       <div className="space-y-4">
         {trainerApplications.map((applicant) => (
           <div key={applicant.id} className="rounded-2xl border border-slate-100 p-4 dark:border-slate-800">
@@ -30,13 +55,13 @@ const TrainerApproval = () => {
               <div className="flex gap-2">
                 <Button
                   variant="ghost"
-                  onClick={() => declineTrainerApplication(applicant.id)}
-                  disabled={applicant.status === 'declined'}
+                  onClick={() => handleReview(applicant.id, 'reject')}
+                  disabled={applicant.status === 'rejected'}
                 >
                   Decline
                 </Button>
                 <Button
-                  onClick={() => approveTrainerApplication(applicant.id)}
+                  onClick={() => handleReview(applicant.id, 'approve')}
                   disabled={applicant.status === 'approved'}
                 >
                   Approve

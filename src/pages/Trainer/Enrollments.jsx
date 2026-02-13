@@ -1,19 +1,52 @@
+import { useEffect, useState } from 'react'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
-import { enrollments, courses } from '../../data/mockData'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
+import { getTrainerEnrollments } from '../../services/enrollmentService'
+import { listCourses } from '../../services/courseService'
 
 const Enrollments = () => {
   const user = useAuthStore((state) => state.user)
   const trainerName = user?.name ?? 'Avery Cole'
-  const trainerCourses = courses.filter((course) => course.trainerName === trainerName)
-  const trainerEnrollments = enrollments.filter((enrollment) =>
-    trainerCourses.some((course) => course.id === enrollment.courseId)
-  )
+  const [trainerEnrollments, setTrainerEnrollments] = useState([])
+  const [coursesById, setCoursesById] = useState({})
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+    const loadData = async () => {
+      setError('')
+      try {
+        const [enrollments, courses] = await Promise.all([
+          getTrainerEnrollments({ trainerName }),
+          listCourses({ mine: true, trainerId: user?.userId || trainerName }),
+        ])
+
+        if (!mounted) return
+        setTrainerEnrollments(enrollments)
+        setCoursesById(
+          courses.reduce((acc, course) => {
+            acc[course.id] = course
+            return acc
+          }, {})
+        )
+      } catch (loadError) {
+        if (mounted) {
+          setError(loadError.message || 'Unable to load enrollments')
+        }
+      }
+    }
+
+    loadData()
+    return () => {
+      mounted = false
+    }
+  }, [trainerName, user])
 
   return (
     <Card title="Enrolled members" description="Snapshot of who is in your programs">
+      {error ? <p className="mb-3 text-sm text-red-600">{error}</p> : null}
       <table className="w-full text-left text-sm">
         <thead className="text-xs uppercase text-slate-400">
           <tr>
@@ -25,7 +58,7 @@ const Enrollments = () => {
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {trainerEnrollments.map((enrollment) => {
-            const course = courses.find((item) => item.id === enrollment.courseId)
+            const course = coursesById[enrollment.courseId]
             return (
               <tr key={enrollment.id} className="text-slate-600 dark:text-slate-300">
                 <td className="py-3 font-medium text-slate-900 dark:text-white">{enrollment.memberName}</td>

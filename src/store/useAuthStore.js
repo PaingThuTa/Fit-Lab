@@ -1,98 +1,105 @@
 import { create } from 'zustand'
-import { trainerApplicants as seededTrainerApplicants } from '../data/mockData'
+import * as authService from '../services/authService'
 
 const fallbackProfiles = {
-  member: { name: 'Jordan Wells', role: 'member', email: 'jordan@Fit-Lab.app' },
-  trainer: { name: 'Avery Cole', role: 'trainer', email: 'avery@Fit-Lab.app' },
-  admin: { name: 'Morgan Lee', role: 'admin', email: 'morgan@Fit-Lab.app' },
+  member: { name: 'Jordan Wells', role: 'member', email: 'jordan@fit-lab.app' },
+  trainer: { name: 'Avery Cole', role: 'trainer', email: 'avery@fit-lab.app' },
+  admin: { name: 'Morgan Lee', role: 'admin', email: 'morgan@fit-lab.app' },
 }
 
-export const useAuthStore = create((set) => ({
+export const useAuthStore = create((set, get) => ({
   user: null,
   role: null,
-  trainerApplications: seededTrainerApplicants.map((applicant) => ({
-    ...applicant,
-    status: 'pending',
-    email: applicant.email || `${applicant.name.toLowerCase().replace(/\s+/g, '.')}@fit-lab.app`,
-  })),
-  login: ({ name = 'Fit-Lab User', role, email }) =>
-    set({
-      user: { name, role, email: email || '' },
-      role,
-    }),
-  logout: () => set({ user: null, role: null }),
+  token: null,
+  theme: 'light',
+  authReady: false,
+  authLoading: false,
+  authError: null,
+
+  hydrateAuth: async () => {
+    if (get().authReady) return
+
+    set({ authLoading: true, authError: null })
+
+    try {
+      const user = await authService.getMe()
+
+      set({
+        user,
+        role: user?.role || null,
+        authReady: true,
+        authLoading: false,
+      })
+    } catch {
+      set({
+        user: null,
+        role: null,
+        authReady: true,
+        authLoading: false,
+      })
+    }
+  },
+
+  login: async ({ email, password, name, role }) => {
+    set({ authLoading: true, authError: null })
+
+    try {
+      const result = await authService.login({ email, password, name, role })
+      set({
+        user: result.user,
+        role: result.user?.role || null,
+        token: result.token,
+        authLoading: false,
+      })
+
+      return result.user
+    } catch (error) {
+      set({ authLoading: false, authError: error.message || 'Login failed' })
+      throw error
+    }
+  },
+
+  register: async ({ fullName, email, password }) => {
+    set({ authLoading: true, authError: null })
+
+    try {
+      const result = await authService.register({ fullName, email, password })
+      set({
+        user: result.user,
+        role: result.user?.role || null,
+        token: result.token,
+        authLoading: false,
+      })
+
+      return result.user
+    } catch (error) {
+      set({ authLoading: false, authError: error.message || 'Registration failed' })
+      throw error
+    }
+  },
+
+  logout: () => {
+    authService.logout()
+    set({ user: null, role: null, token: null, authError: null })
+  },
+
   setRole: (role, name, email) =>
     set({
       role,
       user: role
         ? {
+            userId: `mock-${Date.now()}`,
             name: name || fallbackProfiles[role]?.name || 'Guest',
             role,
             email: email || fallbackProfiles[role]?.email || '',
           }
         : null,
     }),
-  createTrainerApplication: (application) =>
-    set((state) => {
-      const email = (application.email || '').trim().toLowerCase()
-      const name = (application.name || state.user?.name || 'Trainer Applicant').trim()
-      const existingIndex = state.trainerApplications.findIndex((applicant) => {
-        if (email.length > 0 && applicant.email?.toLowerCase() === email) return true
-        return applicant.name.toLowerCase() === name.toLowerCase() && applicant.status !== 'approved'
-      })
 
-      const nextApplication = {
-        id: existingIndex >= 0 ? state.trainerApplications[existingIndex].id : `ta${Date.now()}`,
-        name,
-        email: application.email || state.user?.email || '',
-        specialties: application.specialties || [],
-        certifications: application.certifications || [],
-        submitted: application.submitted || 'Today',
-        bio: application.bio || '',
-        experienceYears: application.experienceYears || 0,
-        sampleCourse: application.sampleCourse || '',
-        status: 'pending',
-      }
-
-      if (existingIndex >= 0) {
-        const trainerApplications = [...state.trainerApplications]
-        trainerApplications[existingIndex] = {
-          ...trainerApplications[existingIndex],
-          ...nextApplication,
-        }
-        return { trainerApplications }
-      }
-
-      return {
-        trainerApplications: [nextApplication, ...state.trainerApplications],
-      }
-    }),
-  approveTrainerApplication: (applicationId) =>
-    set((state) => {
-      const trainerApplications = state.trainerApplications.map((applicant) =>
-        applicant.id === applicationId ? { ...applicant, status: 'approved' } : applicant
-      )
-      const approved = trainerApplications.find((applicant) => applicant.id === applicationId)
-      const shouldPromoteCurrentUser =
-        approved &&
-        state.user &&
-        (approved.email?.toLowerCase() === state.user.email?.toLowerCase() ||
-          approved.name.toLowerCase() === state.user.name?.toLowerCase())
-
-      return {
-        trainerApplications,
-        role: shouldPromoteCurrentUser ? 'trainer' : state.role,
-        user: shouldPromoteCurrentUser ? { ...state.user, role: 'trainer' } : state.user,
-      }
-    }),
-  declineTrainerApplication: (applicationId) =>
-    set((state) => ({
-      trainerApplications: state.trainerApplications.map((applicant) =>
-        applicant.id === applicationId ? { ...applicant, status: 'declined' } : applicant
-      ),
-    })),
   updateUserName: (name) =>
     set((state) => ({
       user: state.user ? { ...state.user, name } : { name, role: state.role, email: '' },
     })),
+
+  setTheme: (theme) => set({ theme }),
 }))

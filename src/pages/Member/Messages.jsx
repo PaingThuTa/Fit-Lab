@@ -1,26 +1,92 @@
 import { useMemo, useState } from 'react'
+import { useEffect } from 'react'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
-import { messageThreads } from '../../data/mockData'
 import { useAuthStore } from '../../store/useAuthStore'
+import { getThreadMessages, getThreads } from '../../services/messageService'
+import { useApiMode } from '../../lib/dataMode'
 
 const MemberMessages = () => {
   const user = useAuthStore((state) => state.user)
   const currentName = user?.name ?? 'Jordan Wells'
-  const threads = useMemo(() => {
-    const ownThreads = messageThreads.filter((thread) => thread.memberName === currentName)
-    return ownThreads.length ? ownThreads : messageThreads
-  }, [currentName])
+  const [threads, setThreads] = useState([])
   const [selectedId, setSelectedId] = useState(null)
+  const [threadMessages, setThreadMessages] = useState([])
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+    const loadThreads = async () => {
+      setError('')
+      try {
+        const nextThreads = await getThreads({ role: 'member', currentName })
+        if (mounted) {
+          setThreads(nextThreads)
+          setSelectedId((prev) => prev || nextThreads[0]?.id || null)
+        }
+      } catch (loadError) {
+        if (mounted) {
+          setError(loadError.message || 'Unable to load messages')
+        }
+      }
+    }
+
+    loadThreads()
+    return () => {
+      mounted = false
+    }
+  }, [currentName])
+
   const selectedThread = useMemo(() => {
     if (threads.length === 0) return null
     return threads.find((thread) => thread.id === selectedId) ?? threads[0]
   }, [threads, selectedId])
 
+  useEffect(() => {
+    let mounted = true
+    const loadThreadMessages = async () => {
+      if (!selectedThread) {
+        setThreadMessages([])
+        return
+      }
+
+      if (!useApiMode) {
+        setThreadMessages(selectedThread.messages || [])
+        return
+      }
+
+      try {
+        const messages = await getThreadMessages({
+          otherUserId: selectedThread.otherUserId,
+          courseId: selectedThread.courseId,
+        })
+        if (mounted) {
+          setThreadMessages(
+            messages.map((message) => ({
+              sender: message.senderId === user?.userId ? 'member' : 'trainer',
+              text: message.content,
+              time: new Date(message.sentAt).toLocaleString(),
+            }))
+          )
+        }
+      } catch (loadError) {
+        if (mounted) {
+          setError(loadError.message || 'Unable to load thread')
+        }
+      }
+    }
+
+    loadThreadMessages()
+    return () => {
+      mounted = false
+    }
+  }, [selectedThread, user])
+
   return (
     <div className="grid gap-6 lg:grid-cols-[320px,1fr]">
       <Card title="Messages" description="Sample conversations are preloaded so you can preview the flow">
+        {error ? <p className="mb-2 text-sm text-red-600">{error}</p> : null}
         <div className="space-y-2">
           {threads.length === 0 && <p className="text-sm text-slate-500">No conversations yet.</p>}
           {threads.map((thread) => (
@@ -49,7 +115,7 @@ const MemberMessages = () => {
         {selectedThread ? (
           <div className="flex h-full flex-col gap-4">
             <div className="space-y-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-900/60">
-              {selectedThread.messages.map((message, index) => (
+              {threadMessages.map((message, index) => (
                 <div key={index} className="flex flex-col">
                   <span className="text-xs uppercase text-slate-400">{message.sender}</span>
                   <span className="rounded-xl bg-white px-3 py-2 text-sm text-slate-800 shadow-sm dark:bg-slate-800 dark:text-slate-100">
@@ -62,9 +128,10 @@ const MemberMessages = () => {
             <div className="flex flex-col gap-3">
               <Input label="Write a message" placeholder="Type your update" />
               <div className="flex gap-3">
-                <Button size="sm">Send</Button>
-                <Button variant="outline" size="sm">Attach</Button>
+                <Button size="sm" disabled={useApiMode}>Send</Button>
+                <Button variant="outline" size="sm" disabled={useApiMode}>Attach</Button>
               </div>
+              {useApiMode ? <p className="text-xs text-slate-400">Read-only messaging in this phase.</p> : null}
             </div>
           </div>
         ) : (

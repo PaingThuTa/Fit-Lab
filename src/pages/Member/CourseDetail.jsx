@@ -1,17 +1,70 @@
-import { useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
-import { courses } from '../../data/mockData'
+import { getCourseDetail } from '../../services/courseService'
+import { enrollInCourse } from '../../services/enrollmentService'
+import { useAuthStore } from '../../store/useAuthStore'
 
 const CourseDetail = () => {
   const { courseId } = useParams()
-  const course = useMemo(() => courses.find((item) => item.id === courseId), [courseId])
+  const user = useAuthStore((state) => state.user)
+  const [course, setCourse] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+    const loadCourse = async () => {
+      setLoading(true)
+      setError('')
+
+      try {
+        const nextCourse = await getCourseDetail(courseId)
+        if (mounted) {
+          setCourse(nextCourse)
+        }
+      } catch (loadError) {
+        if (mounted) {
+          setError(loadError.message || 'Unable to load course')
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadCourse()
+    return () => {
+      mounted = false
+    }
+  }, [courseId])
+
+  const handleEnroll = async () => {
+    setError('')
+    setNotice('')
+    try {
+      await enrollInCourse(courseId, { memberName: user?.name || 'Jordan Wells' })
+      setNotice('Enrollment successful.')
+    } catch (enrollError) {
+      setError(enrollError.message || 'Unable to enroll')
+    }
+  }
+
+  if (loading) {
+    return (
+      <Card title="Loading course">
+        <p className="text-sm text-slate-500">Fetching course details...</p>
+      </Card>
+    )
+  }
 
   if (!course) {
     return (
       <Card title="Course not found">
-        <p className="text-sm text-slate-500">This course is no longer available.</p>
+        <p className="text-sm text-slate-500">{error || 'This course is no longer available.'}</p>
         <Button as={Link} to="/member/courses" className="mt-4" variant="outline">
           Back to courses
         </Button>
@@ -50,9 +103,11 @@ const CourseDetail = () => {
           </ul>
         </div>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Button>Enroll now</Button>
+          <Button onClick={handleEnroll}>Enroll now</Button>
           <Button as={Link} to="/member/messages" variant="outline">Message trainer</Button>
         </div>
+        {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+        {notice ? <p className="mt-3 text-sm text-emerald-600">{notice}</p> : null}
       </Card>
     </div>
   )

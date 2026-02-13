@@ -1,15 +1,37 @@
+import { useEffect, useState } from 'react'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
-import { users } from '../../data/mockData'
-import { useAuthStore } from '../../store/useAuthStore'
+import { getAdminUsers } from '../../services/adminService'
 
 const UsersList = () => {
-  const currentUser = useAuthStore((state) => state.user)
-  const applications = useAuthStore((state) => state.trainerApplications)
-  const allUsers = currentUser && !users.some((user) => user.email === currentUser.email) ? [currentUser, ...users] : users
+  const [users, setUsers] = useState([])
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+    const loadUsers = async () => {
+      setError('')
+      try {
+        const payload = await getAdminUsers()
+        if (mounted) {
+          setUsers(payload)
+        }
+      } catch (loadError) {
+        if (mounted) {
+          setError(loadError.message || 'Unable to load users')
+        }
+      }
+    }
+
+    loadUsers()
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   return (
     <Card title="Users" description="Members, trainers, and trainer applicant statuses">
+      {error ? <p className="mb-3 text-sm text-red-600">{error}</p> : null}
       <table className="w-full text-left text-sm">
         <thead className="text-xs uppercase text-slate-400">
           <tr>
@@ -21,20 +43,13 @@ const UsersList = () => {
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-          {allUsers.map((user) => {
-            const application = applications.find((applicant) => {
-              if (user.email?.trim()) {
-                return applicant.email?.toLowerCase() === user.email.toLowerCase()
-              }
-              return applicant.name.toLowerCase() === user.name.toLowerCase()
-            })
-
+          {users.map((user) => {
             return (
-              <tr key={user.id || user.email || user.name} className="text-slate-600 dark:text-slate-300">
-              <td className="py-3 font-medium text-slate-900 dark:text-white">{user.name}</td>
+              <tr key={user.userId || user.email || user.fullName} className="text-slate-600 dark:text-slate-300">
+              <td className="py-3 font-medium text-slate-900 dark:text-white">{user.fullName}</td>
               <td>{user.email}</td>
               <td className="capitalize">{user.role}</td>
-              <td className="capitalize">{application?.status || 'none'}</td>
+              <td className="capitalize">{user.trainerApplicationStatus || 'none'}</td>
               <td className="text-right">
                 <Button size="sm" variant="outline">
                   Manage

@@ -1,12 +1,59 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
-import { courses } from '../../data/mockData'
+import { listCourses } from '../../services/courseService'
+import { enrollInCourse } from '../../services/enrollmentService'
+import { useAuthStore } from '../../store/useAuthStore'
 
 const Courses = () => {
   const [query, setQuery] = useState('')
+  const [courses, setCourses] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const user = useAuthStore((state) => state.user)
+
+  useEffect(() => {
+    let mounted = true
+
+    const loadCourses = async () => {
+      setLoading(true)
+      setError('')
+      try {
+        const nextCourses = await listCourses()
+        if (mounted) {
+          setCourses(nextCourses)
+        }
+      } catch (loadError) {
+        if (mounted) {
+          setError(loadError.message || 'Unable to load courses')
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadCourses()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const handleEnroll = async (courseId) => {
+    setNotice('')
+    setError('')
+    try {
+      await enrollInCourse(courseId, { memberName: user?.name || 'Jordan Wells' })
+      setNotice('Enrollment successful.')
+    } catch (enrollError) {
+      setError(enrollError.message || 'Unable to enroll')
+    }
+  }
+
   const filteredCourses = useMemo(() => {
     const term = query.trim().toLowerCase()
     if (!term) return courses
@@ -16,7 +63,7 @@ const Courses = () => {
         course.description.toLowerCase().includes(term) ||
         course.trainerName.toLowerCase().includes(term),
     )
-  }, [query])
+  }, [courses, query])
 
   return (
     <div className="space-y-6">
@@ -34,6 +81,13 @@ const Courses = () => {
           />
         </div>
       </div>
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {notice ? <p className="text-sm text-emerald-600">{notice}</p> : null}
+      {loading ? (
+        <Card>
+          <p className="text-sm text-slate-500">Loading courses...</p>
+        </Card>
+      ) : null}
       <div className="grid gap-6 md:grid-cols-2">
         {filteredCourses.map((course) => (
           <Card
@@ -50,7 +104,7 @@ const Courses = () => {
                 <Button as={Link} to={`/member/courses/${course.id}`} size="sm">
                   Details
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => handleEnroll(course.id)}>
                   Enroll
                 </Button>
               </div>
