@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
 import { useAuthStore } from '../../store/useAuthStore'
-import { getThreadMessages, getThreads } from '../../services/messageService'
+import { getThreadMessages, getThreads, sendMessage } from '../../services/messageService'
 import { useApiMode } from '../../lib/dataMode'
 import { queryKeys } from '../../lib/queryKeys'
 
@@ -12,6 +12,7 @@ const TrainerMessages = () => {
   const user = useAuthStore((state) => state.user)
   const currentName = user?.name ?? 'Avery Cole'
   const [selectedId, setSelectedId] = useState(null)
+  const [draft, setDraft] = useState('')
   const threadsQuery = useQuery({
     queryKey: queryKeys.messageThreads('trainer'),
     queryFn: ({ signal }) => getThreads({ role: 'trainer', currentName, signal }),
@@ -41,6 +42,14 @@ const TrainerMessages = () => {
         signal,
       }),
     enabled: Boolean(selectedThread) && useApiMode,
+  })
+
+  const sendMessageMutation = useMutation({
+    mutationFn: ({ receiverId, courseId, content }) => sendMessage({ receiverId, courseId, content }),
+    onSuccess: async () => {
+      await Promise.all([threadsQuery.refetch(), threadMessagesQuery.refetch()])
+      setDraft('')
+    },
   })
 
   const threadMessages = useMemo(() => {
@@ -102,12 +111,29 @@ const TrainerMessages = () => {
               ))}
             </div>
             <div className="flex flex-col gap-3">
-              <Input label="Write a message" placeholder="Share feedback or resources" />
               <div className="flex gap-3">
-                <Button size="sm" disabled={useApiMode}>Send</Button>
+                <Input
+                  label="Write a message"
+                  placeholder="Share feedback or resources"
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                />
+                <Button
+                  size="sm"
+                  disabled={!useApiMode || !draft.trim() || sendMessageMutation.isPending}
+                  onClick={() =>
+                    sendMessageMutation.mutate({
+                      receiverId: selectedThread.otherUserId,
+                      courseId: selectedThread.courseId,
+                      content: draft.trim(),
+                    })
+                  }
+                >
+                  {sendMessageMutation.isPending ? 'Sending...' : 'Send'}
+                </Button>
                 <Button variant="outline" size="sm" disabled={useApiMode}>Attach</Button>
               </div>
-              {useApiMode ? <p className="text-xs text-slate-400">Read-only messaging in this phase.</p> : null}
+              {useApiMode ? <p className="text-xs text-slate-400">Send is enabled in API mode.</p> : null}
             </div>
           </div>
         ) : (

@@ -8,6 +8,8 @@ import Button from '../../components/Button'
 import { getCourseDetail, updateCourse } from '../../services/courseService'
 import { queryKeys } from '../../lib/queryKeys'
 
+const DIFFICULTY_OPTIONS = ['Beginner', 'Intermediate', 'Advanced']
+
 const EditCourse = () => {
   const { courseId } = useParams()
   const navigate = useNavigate()
@@ -87,7 +89,22 @@ const EditCourse = () => {
       <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
         <Input label="Course title" name="title" value={currentForm.title} onChange={handleChange} className="md:col-span-2" />
         <Input label="Duration" name="duration" value={currentForm.duration} onChange={handleChange} />
-        <Input label="Level" name="level" value={currentForm.level} onChange={handleChange} />
+        <label className="flex flex-col gap-2 text-sm text-slate-600 dark:text-slate-300">
+          <span className="font-medium text-slate-700 dark:text-slate-200">Level</span>
+          <select
+            name="level"
+            value={currentForm.level}
+            onChange={handleChange}
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+          >
+            <option value="">Select level</option>
+            {DIFFICULTY_OPTIONS.map((level) => (
+              <option key={level} value={level}>
+                {level}
+              </option>
+            ))}
+          </select>
+        </label>
         <Input label="Sessions" name="sessions" value={currentForm.sessions} onChange={handleChange} />
         <Input label="Spots" name="spots" value={currentForm.spots} onChange={handleChange} />
         <Input label="Price" name="price" value={currentForm.price} onChange={handleChange} />

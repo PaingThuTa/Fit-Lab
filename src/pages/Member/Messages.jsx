@@ -4,7 +4,7 @@ import Card from '../../components/Card'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
 import { useAuthStore } from '../../store/useAuthStore'
-import { getThreadMessages, getThreads } from '../../services/messageService'
+import { getThreadMessages, getThreads, sendMessage } from '../../services/messageService'
 import { useApiMode } from '../../lib/dataMode'
 
 const MemberMessages = () => {
@@ -13,6 +13,7 @@ const MemberMessages = () => {
   const [threads, setThreads] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const [threadMessages, setThreadMessages] = useState([])
+  const [draft, setDraft] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -83,6 +84,34 @@ const MemberMessages = () => {
     }
   }, [selectedThread, user])
 
+  const handleSend = async () => {
+    if (!selectedThread || !useApiMode || !draft.trim()) return
+
+    try {
+      await sendMessage({
+        receiverId: selectedThread.otherUserId,
+        courseId: selectedThread.courseId,
+        content: draft.trim(),
+      })
+
+      const messages = await getThreadMessages({
+        otherUserId: selectedThread.otherUserId,
+        courseId: selectedThread.courseId,
+      })
+
+      setThreadMessages(
+        messages.map((message) => ({
+          sender: message.senderId === user?.userId ? 'member' : 'trainer',
+          text: message.content,
+          time: new Date(message.sentAt).toLocaleString(),
+        }))
+      )
+      setDraft('')
+    } catch (sendError) {
+      setError(sendError.message || 'Unable to send message')
+    }
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-[320px,1fr]">
       <Card title="Messages" description="Sample conversations are preloaded so you can preview the flow">
@@ -126,12 +155,17 @@ const MemberMessages = () => {
               ))}
             </div>
             <div className="flex flex-col gap-3">
-              <Input label="Write a message" placeholder="Type your update" />
+              <Input
+                label="Write a message"
+                placeholder="Type your update"
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+              />
               <div className="flex gap-3">
-                <Button size="sm" disabled={useApiMode}>Send</Button>
+                <Button size="sm" disabled={!useApiMode || !draft.trim()} onClick={handleSend}>Send</Button>
                 <Button variant="outline" size="sm" disabled={useApiMode}>Attach</Button>
               </div>
-              {useApiMode ? <p className="text-xs text-slate-400">Read-only messaging in this phase.</p> : null}
+              {useApiMode ? <p className="text-xs text-slate-400">Send is enabled in API mode.</p> : null}
             </div>
           </div>
         ) : (

@@ -16,7 +16,7 @@ function mapProposal(row) {
     sampleCourse: row.sample_course,
     bio: row.bio,
     status: String(row.status || '').toLowerCase(),
-    reviewId: row.review_id,
+    reviewerId: row.reviewer_id,
     reviewerName: row.reviewer_name,
     reviewedAt: row.reviewed_at,
     rejectionReason: row.rejection_reason,
@@ -46,7 +46,7 @@ async function getMyProposal(userId) {
 }
 
 async function upsertMyProposal(userId, payload) {
-  const message = String(payload.message || payload.bio || '').trim();
+  const message = String(payload.message || '').trim();
   const specialties = normalizeList(payload.specialties);
   const certifications = normalizeList(payload.certifications);
   const experienceYears = Number(payload.experienceYears || 0);
@@ -54,7 +54,7 @@ async function upsertMyProposal(userId, payload) {
   const bio = payload.bio ? String(payload.bio).trim() : null;
 
   if (!message) {
-    throw new AppError(400, 'message or bio is required');
+    throw new AppError(400, 'message is required');
   }
 
   await repository.upsertProposal({
@@ -75,7 +75,7 @@ async function listAdminProposals() {
   return proposals.map(mapProposal);
 }
 
-async function decideProposal({ proposalId, action, reviewId, rejectionReason }) {
+async function decideProposal({ proposalId, action, reviewerId, rejectionReason }) {
   const proposal = await repository.findProposalById(proposalId);
 
   if (!proposal) {
@@ -95,7 +95,7 @@ async function decideProposal({ proposalId, action, reviewId, rejectionReason })
     const updatedProposal = await repository.updateProposalDecision(client, {
       proposalId,
       status,
-      reviewId,
+      reviewerId,
       rejectionReason: action === 'reject' ? rejectionReason || null : null,
     });
 

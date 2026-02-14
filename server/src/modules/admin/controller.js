@@ -25,7 +25,7 @@ const patchTrainerProposal = asyncHandler(async (req, res) => {
   const proposal = await service.decideTrainerProposal({
     proposalId: req.params.proposalId,
     action: req.body.action,
-    reviewId: req.user.userId,
+    reviewerId: req.user.userId,
     rejectionReason: req.body.rejectionReason,
   });
 

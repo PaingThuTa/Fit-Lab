@@ -7,5 +7,6 @@ const router = express.Router();
 router.use(authenticate, authorizeRoles('member', 'trainer', 'admin'));
 router.get('/threads', controller.getThreads);
 router.get('/thread', controller.getThreadMessages);
+router.post('/', controller.postMessage);
 
 module.exports = router;

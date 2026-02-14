@@ -15,6 +15,7 @@ function mapApiProposal(proposal) {
     bio: proposal.bio || '',
     submitted: proposal.updatedAt || proposal.createdAt,
     status: proposal.status,
+    reviewerId: proposal.reviewerId,
     message: proposal.message,
     rejectionReason: proposal.rejectionReason,
   }
@@ -46,7 +47,7 @@ export async function upsertMyProposal(formPayload, { currentUser } = {}) {
     const payload = await apiRequest('/trainer-proposals/me', {
       method: 'PUT',
       body: {
-        message: formPayload.message || formPayload.bio,
+        message: formPayload.message,
         specialties: parseCommaList(formPayload.specialties),
         certifications: parseCommaList(formPayload.certifications),
         experienceYears: Number(formPayload.experienceYears || 0),
@@ -72,7 +73,7 @@ export async function upsertMyProposal(formPayload, { currentUser } = {}) {
     experienceYears: Number(formPayload.experienceYears || 0),
     sampleCourse: formPayload.sampleCourse || '',
     bio: formPayload.bio || '',
-    message: formPayload.bio || '',
+    message: formPayload.message || '',
     submitted: 'Today',
     status: 'pending',
   }

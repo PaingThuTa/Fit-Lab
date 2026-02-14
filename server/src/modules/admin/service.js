@@ -55,8 +55,8 @@ async function listTrainerProposals() {
   return proposalsService.listAdminProposals();
 }
 
-async function decideTrainerProposal({ proposalId, action, reviewId, rejectionReason }) {
-  return proposalsService.decideProposal({ proposalId, action, reviewId, rejectionReason });
+async function decideTrainerProposal({ proposalId, action, reviewerId, rejectionReason }) {
+  return proposalsService.decideProposal({ proposalId, action, reviewerId, rejectionReason });
 }
 
 module.exports = {

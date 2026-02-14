@@ -34,7 +34,36 @@ async function getThreadMessages({ userId, otherUserId, courseId }) {
   }));
 }
 
+async function sendMessage({ userId, receiverId, courseId, content }) {
+  if (!receiverId) {
+    throw new AppError(400, 'receiverId is required');
+  }
+
+  const normalizedContent = String(content || '').trim();
+  if (!normalizedContent) {
+    throw new AppError(400, 'content is required');
+  }
+
+  const message = await repository.createMessage({
+    senderId: userId,
+    receiverId,
+    courseId: courseId || null,
+    content: normalizedContent,
+  });
+
+  return {
+    messageId: message.message_id,
+    senderId: message.sender_id,
+    receiverId: message.receiver_id,
+    courseId: message.course_id,
+    content: message.content,
+    sentAt: message.sent_at,
+    readAt: message.read_at,
+  };
+}
+
 module.exports = {
   getThreads,
   getThreadMessages,
+  sendMessage,
 };

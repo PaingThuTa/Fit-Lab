@@ -74,7 +74,19 @@ async function listThreadMessages({ userId, otherUserId, courseId }) {
   return rows;
 }
 
+async function createMessage({ senderId, receiverId, courseId, content }) {
+  const { rows } = await pool.query(
+    `INSERT INTO messages (sender_id, receiver_id, course_id, content)
+     VALUES ($1, $2, $3, $4)
+     RETURNING message_id, sender_id, receiver_id, course_id, content, sent_at, read_at`,
+    [senderId, receiverId, courseId, content]
+  );
+
+  return rows[0] || null;
+}
+
 module.exports = {
   listThreads,
   listThreadMessages,
+  createMessage,
 };

@@ -29,6 +29,7 @@ const Proposal = () => {
         if (mounted) {
           setExistingApplication(proposal)
           setForm({
+            message: proposal?.message || '',
             specialties: proposal?.specialties?.join(', ') || '',
             certifications: proposal?.certifications?.join(', ') || '',
             experienceYears: String(proposal?.experienceYears || ''),
@@ -50,6 +51,7 @@ const Proposal = () => {
   }, [user])
 
   const [form, setForm] = useState({
+    message: '',
     specialties: '',
     certifications: '',
     experienceYears: '',
@@ -71,6 +73,7 @@ const Proposal = () => {
     try {
       const proposal = await upsertMyProposal(
         {
+          message: form.message.trim(),
           specialties: parseCommaValues(form.specialties),
           certifications: parseCommaValues(form.certifications),
           experienceYears: Number(form.experienceYears) || 0,
@@ -100,6 +103,16 @@ const Proposal = () => {
           </p>
         </div>
         <form className="mt-5 grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
+          <label className="md:col-span-2">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Proposal message</span>
+            <textarea
+              name="message"
+              value={form.message}
+              onChange={handleChange}
+              className="mt-2 min-h-[100px] w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              placeholder="Share what you want to coach and why you are a good fit."
+            />
+          </label>
           <Input
             label="Specialties"
             name="specialties"
