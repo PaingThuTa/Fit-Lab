@@ -1,12 +1,15 @@
 import { useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import Card from '../../components/Card'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
 import { createCourse } from '../../services/courseService'
+import { queryKeys } from '../../lib/queryKeys'
 
 const CreateCourse = () => {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [form, setForm] = useState({
     title: '',
     duration: '',
@@ -18,7 +21,17 @@ const CreateCourse = () => {
     syllabus: '',
   })
   const [error, setError] = useState('')
-  const [saving, setSaving] = useState(false)
+
+  const createCourseMutation = useMutation({
+    mutationFn: (payload) => createCourse(payload),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.courses({}) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.trainerDashboard }),
+      ])
+      navigate('/trainer/courses')
+    },
+  })
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -27,11 +40,10 @@ const CreateCourse = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    setSaving(true)
     setError('')
 
     try {
-      await createCourse({
+      await createCourseMutation.mutateAsync({
         title: form.title,
         duration: form.duration,
         level: form.level,
@@ -44,12 +56,8 @@ const CreateCourse = () => {
           .map((item) => item.trim())
           .filter(Boolean),
       })
-
-      navigate('/trainer/courses')
     } catch (submitError) {
       setError(submitError.message || 'Unable to create course')
-    } finally {
-      setSaving(false)
     }
   }
 
@@ -84,7 +92,7 @@ const CreateCourse = () => {
         </label>
         {error ? <p className="md:col-span-2 text-sm text-red-600">{error}</p> : null}
         <div className="md:col-span-2 flex gap-3">
-          <Button type="submit">{saving ? 'Saving...' : 'Create course'}</Button>
+          <Button type="submit">{createCourseMutation.isPending ? 'Saving...' : 'Create course'}</Button>
           <Button type="button" variant="outline" onClick={() => navigate('/trainer/courses')}>
             Cancel
           </Button>

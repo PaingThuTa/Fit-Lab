@@ -30,12 +30,13 @@ function buildUrl(path, query = undefined) {
 }
 
 export async function apiRequest(path, options = {}) {
-  const { method = 'GET', body, query, headers = {}, token } = options
+  const { method = 'GET', body, query, headers = {}, token, signal } = options
 
   const authToken = token || authTokenStorage.get()
   const hasBody = body !== undefined
   const response = await fetch(buildUrl(path, query), {
     method,
+    signal,
     headers: {
       ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
       ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),

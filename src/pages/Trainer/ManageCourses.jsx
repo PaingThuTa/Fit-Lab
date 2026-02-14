@@ -1,36 +1,32 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import { useAuthStore } from '../../store/useAuthStore'
-import { listCourses } from '../../services/courseService'
+import { listCoursesPage } from '../../services/courseService'
+import { queryKeys } from '../../lib/queryKeys'
 
 const ManageCourses = () => {
   const user = useAuthStore((state) => state.user)
-  const [trainerCourses, setTrainerCourses] = useState([])
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let mounted = true
-    const loadCourses = async () => {
-      setError('')
-      try {
-        const nextCourses = await listCourses({ mine: true, trainerId: user?.userId || user?.name })
-        if (mounted) {
-          setTrainerCourses(nextCourses)
-        }
-      } catch (loadError) {
-        if (mounted) {
-          setError(loadError.message || 'Unable to load courses')
-        }
-      }
-    }
-
-    loadCourses()
-    return () => {
-      mounted = false
-    }
-  }, [user])
+  const coursesQuery = useQuery({
+    queryKey: queryKeys.courses({
+      mine: true,
+      trainerId: user?.userId || user?.name || '',
+      limit: 20,
+      offset: 0,
+    }),
+    queryFn: ({ signal }) =>
+      listCoursesPage({
+        mine: true,
+        trainerId: user?.userId || user?.name,
+        limit: 20,
+        offset: 0,
+        signal,
+      }),
+    staleTime: 60 * 1000,
+  })
+  const trainerCourses = coursesQuery.data?.courses || []
+  const error = coursesQuery.error?.message || ''
 
   return (
     <div className="space-y-6">
@@ -44,6 +40,14 @@ const ManageCourses = () => {
         </Button>
       </div>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {coursesQuery.isError ? (
+        <Card>
+          <p className="text-sm text-slate-500">Unable to load courses.</p>
+          <Button className="mt-3" size="sm" variant="outline" onClick={() => coursesQuery.refetch()}>
+            Retry
+          </Button>
+        </Card>
+      ) : null}
       <Card>
         <table className="w-full text-left text-sm">
           <thead className="text-xs uppercase text-slate-400">
@@ -71,7 +75,10 @@ const ManageCourses = () => {
             ))}
           </tbody>
         </table>
-        {trainerCourses.length === 0 ? (
+        {coursesQuery.isPending ? (
+          <p className="mt-3 text-sm text-slate-500">Loading courses...</p>
+        ) : null}
+        {!coursesQuery.isPending && trainerCourses.length === 0 ? (
           <p className="mt-3 text-sm text-slate-500">No courses assigned to your trainer profile yet.</p>
         ) : null}
       </Card>

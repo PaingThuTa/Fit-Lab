@@ -1,76 +1,84 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import { useAuthStore } from '../../store/useAuthStore'
 import { getMemberDashboard } from '../../services/dashboardService'
-import { listCourses } from '../../services/courseService'
+import { listCoursesPage } from '../../services/courseService'
 import { getMyProposal } from '../../services/proposalService'
+import { queryKeys } from '../../lib/queryKeys'
 
 const Home = () => {
   const user = useAuthStore((state) => state.user)
   const currentName = user?.name ?? 'Jordan Wells'
-  const [courses, setCourses] = useState([])
-  const [myEnrollments, setMyEnrollments] = useState([])
-  const [myTrainerApplication, setMyTrainerApplication] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const queryClient = useQueryClient()
+
+  const dashboardQuery = useQuery({
+    queryKey: queryKeys.memberDashboard,
+    queryFn: ({ signal }) =>
+      getMemberDashboard({
+        currentName,
+        currentEmail: user?.email,
+        signal,
+      }),
+  })
+
+  const coursesQuery = useQuery({
+    queryKey: queryKeys.courses({ query: '', limit: 20, offset: 0 }),
+    queryFn: ({ signal }) =>
+      listCoursesPage({
+        limit: 20,
+        offset: 0,
+        signal,
+      }),
+    staleTime: 60 * 1000,
+  })
+
+  const proposalQuery = useQuery({
+    queryKey: ['proposal', 'me'],
+    queryFn: ({ signal }) => getMyProposal({ currentUser: user, signal }),
+  })
 
   useEffect(() => {
-    let mounted = true
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.courses({ query: '', limit: 20, offset: 0 }),
+      queryFn: ({ signal }) =>
+        listCoursesPage({
+          limit: 20,
+          offset: 0,
+          signal,
+        }),
+      staleTime: 60 * 1000,
+    })
+  }, [queryClient])
 
-    const loadData = async () => {
-      setLoading(true)
-      setError('')
-      try {
-        const [dashboard, allCourses, proposal] = await Promise.all([
-          getMemberDashboard({ currentName, currentEmail: user?.email }),
-          listCourses(),
-          getMyProposal({ currentUser: user }),
-        ])
-
-        if (!mounted) return
-
-        setCourses(
-          allCourses.length
-            ? allCourses
-            : (dashboard.courses || []).map((course) => ({
-                id: course.courseId,
-                title: course.name,
-                duration: course.durationLabel || 'TBD',
-                level: course.difficulty || 'BEGINNER',
-                sessions: course.sessionCount || 0,
-                trainerName: course.trainerName,
-                spots: course.spotLimit || 0,
-                price: `$${Number(course.price || 0).toFixed(0)}`,
-                description: course.description || '',
-                syllabus: [],
-              }))
-        )
-        setMyEnrollments(
-          (dashboard.myEnrollments || []).map((enrollment) => ({
-            id: `${enrollment.courseId}-${enrollment.progressPercent}`,
-            courseId: enrollment.courseId,
-            progress: enrollment.progressPercent || 0,
-          }))
-        )
-        setMyTrainerApplication(proposal)
-      } catch (loadError) {
-        if (mounted) {
-          setError(loadError.message || 'Unable to load member dashboard')
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false)
-        }
-      }
-    }
-
-    loadData()
-    return () => {
-      mounted = false
-    }
-  }, [currentName, user])
+  const dashboard = dashboardQuery.data || {}
+  const fallbackCourses = (dashboard.courses || []).map((course) => ({
+    id: course.courseId,
+    title: course.name,
+    duration: course.durationLabel || 'TBD',
+    level: course.difficulty || 'BEGINNER',
+    sessions: course.sessionCount || 0,
+    trainerName: course.trainerName,
+    spots: course.spotLimit || 0,
+    price: `$${Number(course.price || 0).toFixed(0)}`,
+    description: course.description || '',
+    syllabus: [],
+  }))
+  const courses = coursesQuery.data?.courses?.length ? coursesQuery.data.courses : fallbackCourses
+  const myEnrollments = (dashboard.myEnrollments || []).map((enrollment) => ({
+    id: `${enrollment.courseId}-${enrollment.progressPercent}`,
+    courseId: enrollment.courseId,
+    progress: enrollment.progressPercent || 0,
+  }))
+  const myTrainerApplication = proposalQuery.data || null
+  const loading = dashboardQuery.isPending || coursesQuery.isPending || proposalQuery.isPending
+  const error =
+    dashboardQuery.error?.message ||
+    coursesQuery.error?.message ||
+    proposalQuery.error?.message ||
+    ''
 
   return (
     <div className="grid gap-8 lg:grid-cols-[280px,1fr]">
@@ -112,9 +120,15 @@ const Home = () => {
       <div className="space-y-10">
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
         {loading ? (
-          <Card>
-            <p className="text-sm text-slate-500">Loading dashboard...</p>
-          </Card>
+          <div className="grid gap-4 md:grid-cols-2">
+            {[0, 1].map((item) => (
+              <Card key={item}>
+                <div className="h-4 w-2/3 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                <div className="mt-3 h-3 w-full animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+                <div className="mt-2 h-3 w-5/6 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+              </Card>
+            ))}
+          </div>
         ) : null}
         <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">

@@ -4,32 +4,31 @@ const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
-const normalizeOrigin = (origin) => origin.trim().replace(/\/+$/, '').toLowerCase();
+const normalizeOrigin = (origin) => String(origin || '').trim().replace(/\/+$/, '').toLowerCase();
 const defaultAllowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
-const allowedOrigins = (process.env.CORS_ORIGIN || defaultAllowedOrigins.join(','))
+const envAllowedOrigins = String(process.env.CORS_ORIGIN || '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
-const allowedOriginSet = new Set(allowedOrigins.map(normalizeOrigin));
+const allowedOrigins = [...defaultAllowedOrigins, ...envAllowedOrigins];
+const allowedOriginSet = new Set(allowedOrigins.map(normalizeOrigin).filter(Boolean));
 
 app.use((req, res, next) => {
   const requestOrigin = req.headers.origin;
   const normalizedRequestOrigin = requestOrigin ? normalizeOrigin(requestOrigin) : '';
   const isAllowedRequestOrigin = requestOrigin && allowedOriginSet.has(normalizedRequestOrigin);
-  const allowOrigin = isAllowedRequestOrigin ? requestOrigin : allowedOrigins[0];
   const requestedHeaders = req.headers['access-control-request-headers'];
 
-  if (!requestOrigin || isAllowedRequestOrigin) {
-    res.setHeader('Access-Control-Allow-Origin', allowOrigin);
+  if (isAllowedRequestOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', requestOrigin);
     res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      requestedHeaders || 'Content-Type,Authorization'
+    );
   }
-
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    requestedHeaders || 'Content-Type,Authorization'
-  );
 
   if (req.method === 'OPTIONS') {
     if (requestOrigin && !isAllowedRequestOrigin) {

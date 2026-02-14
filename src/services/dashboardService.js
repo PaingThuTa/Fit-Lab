@@ -2,9 +2,9 @@ import { apiRequest } from '../lib/apiClient'
 import { useApiMode } from '../lib/dataMode'
 import { getMockState } from './mockState'
 
-export async function getMemberDashboard({ currentName, currentEmail } = {}) {
+export async function getMemberDashboard({ currentName, currentEmail, signal } = {}) {
   if (useApiMode) {
-    const payload = await apiRequest('/member/dashboard')
+    const payload = await apiRequest('/member/dashboard', { signal })
     return payload.dashboard
   }
 
@@ -20,9 +20,9 @@ export async function getMemberDashboard({ currentName, currentEmail } = {}) {
   }
 }
 
-export async function getTrainerDashboard({ trainerName } = {}) {
+export async function getTrainerDashboard({ trainerName, signal } = {}) {
   if (useApiMode) {
-    const payload = await apiRequest('/trainer/dashboard')
+    const payload = await apiRequest('/trainer/dashboard', { signal })
     return payload.dashboard
   }
 

@@ -2,9 +2,9 @@ import { apiRequest } from '../lib/apiClient'
 import { useApiMode } from '../lib/dataMode'
 import { getMockState } from './mockState'
 
-export async function getThreads({ role, currentName }) {
+export async function getThreads({ role, currentName, signal }) {
   if (useApiMode) {
-    const payload = await apiRequest('/messages/threads')
+    const payload = await apiRequest('/messages/threads', { signal })
     return payload.threads.map((thread) => ({
       id: thread.threadId,
       otherUserId: thread.otherUserId,
@@ -26,13 +26,14 @@ export async function getThreads({ role, currentName }) {
   return state.messageThreads.filter((thread) => thread.trainerName === currentName)
 }
 
-export async function getThreadMessages({ otherUserId, courseId }) {
+export async function getThreadMessages({ otherUserId, courseId, signal }) {
   if (useApiMode) {
     const payload = await apiRequest('/messages/thread', {
       query: {
         otherUserId,
         courseId,
       },
+      signal,
     })
 
     return payload.messages

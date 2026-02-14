@@ -31,9 +31,12 @@ function mapCourse(row, lessons = null) {
   };
 }
 
-async function listCourses({ query, trainerId }) {
-  const rows = await repository.listCourses({ query, trainerId });
-  return rows.map((row) => mapCourse(row));
+async function listCourses({ query, trainerId, limit, offset }) {
+  const rows = await repository.listCourses({ query, trainerId, limit, offset });
+  return {
+    courses: rows.map((row) => mapCourse(row)),
+    total: rows[0]?.total_count || 0,
+  };
 }
 
 async function getCourseById(courseId) {

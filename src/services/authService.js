@@ -113,7 +113,7 @@ export async function register({ fullName, email, password }) {
   }
 }
 
-export async function getMe() {
+export async function getMe({ signal } = {}) {
   if (useApiMode) {
     const token = authTokenStorage.get()
 
@@ -122,7 +122,7 @@ export async function getMe() {
     }
 
     try {
-      const payload = await apiRequest('/auth/me', { token })
+      const payload = await apiRequest('/auth/me', { token, signal })
       const user = mapApiUser(payload.user)
       return toStoreUser(user)
     } catch (error) {
