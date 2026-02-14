@@ -28,9 +28,9 @@ function parseCommaList(value) {
     .filter(Boolean)
 }
 
-export async function getMyProposal({ currentUser } = {}) {
+export async function getMyProposal({ currentUser, signal } = {}) {
   if (useApiMode) {
-    const payload = await apiRequest('/trainer-proposals/me')
+    const payload = await apiRequest('/trainer-proposals/me', { signal })
     return mapApiProposal(payload.proposal)
   }
 

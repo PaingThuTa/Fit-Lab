@@ -1,13 +1,7 @@
 import { useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Button from './Button'
 import { useAuthStore } from '../store/useAuthStore'
-
-const navItems = [
-  { to: '/member', label: 'Member' },
-  { to: '/trainer', label: 'Trainer' },
-  { to: '/admin', label: 'Admin' },
-]
 
 const Navbar = () => {
   const navigate = useNavigate()
@@ -36,17 +30,6 @@ const Navbar = () => {
         <Link to="/" className="text-lg font-semibold text-slate-900 dark:text-white">
           Fit-Lab
         </Link>
-        <nav className="hidden gap-6 text-sm font-medium text-slate-600 dark:text-slate-300 md:flex">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => (isActive ? 'text-primary-600' : undefined)}
-            >
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
         <div className="flex flex-wrap items-center justify-end gap-3 md:gap-4">
           {user ? (
             <div className="flex items-center gap-3 border-l border-slate-200 pl-3 dark:border-slate-700">

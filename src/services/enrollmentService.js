@@ -2,9 +2,9 @@ import { apiRequest } from '../lib/apiClient'
 import { useApiMode } from '../lib/dataMode'
 import { getMockState } from './mockState'
 
-export async function enrollInCourse(courseId, { memberName } = {}) {
+export async function enrollInCourse(courseId, { memberName, signal } = {}) {
   if (useApiMode) {
-    await apiRequest(`/courses/${courseId}/enroll`, { method: 'POST' })
+    await apiRequest(`/courses/${courseId}/enroll`, { method: 'POST', signal })
     return
   }
 
@@ -22,9 +22,9 @@ export async function enrollInCourse(courseId, { memberName } = {}) {
   })
 }
 
-export async function getMyEnrollments({ memberName } = {}) {
+export async function getMyEnrollments({ memberName, signal } = {}) {
   if (useApiMode) {
-    const payload = await apiRequest('/enrollments/me')
+    const payload = await apiRequest('/enrollments/me', { signal })
     return payload.enrollments.map((item) => ({
       id: `${item.memberId}-${item.courseId}`,
       courseId: item.courseId,
@@ -37,9 +37,9 @@ export async function getMyEnrollments({ memberName } = {}) {
   return state.enrollments.filter((item) => item.memberName === memberName)
 }
 
-export async function getTrainerEnrollments({ trainerName } = {}) {
+export async function getTrainerEnrollments({ trainerName, signal } = {}) {
   if (useApiMode) {
-    const payload = await apiRequest('/enrollments/trainer')
+    const payload = await apiRequest('/enrollments/trainer', { signal })
     return payload.enrollments.map((item) => ({
       id: `${item.memberId}-${item.courseId}`,
       courseId: item.courseId,

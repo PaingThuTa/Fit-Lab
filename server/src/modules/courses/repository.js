@@ -1,6 +1,6 @@
 const pool = require('../../config/db');
 
-async function listCourses({ query, trainerId }) {
+async function listCourses({ query, trainerId, limit, offset }) {
   const values = [];
   const conditions = [];
 
@@ -17,28 +17,41 @@ async function listCourses({ query, trainerId }) {
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
+  values.push(limit);
+  const limitIdx = values.length;
+  values.push(offset);
+  const offsetIdx = values.length;
+
   const { rows } = await pool.query(
-    `SELECT
-       c.course_id,
-       c.trainer_id,
-       c.name,
-       c.description,
-       c.category,
-       c.difficulty,
-       c.price,
-       c.thumbnail_url,
-       c.duration_label,
-       c.session_count,
-       c.spot_limit,
-       c.created_at,
-       u.full_name AS trainer_name,
-       COUNT(e.member_id)::INT AS enrolled_count
-     FROM courses c
-     JOIN users u ON u.user_id = c.trainer_id
-     LEFT JOIN enrollments e ON e.course_id = c.course_id
-     ${whereClause}
-     GROUP BY c.course_id, u.full_name
-     ORDER BY c.created_at DESC`,
+    `WITH course_rows AS (
+       SELECT
+         c.course_id,
+         c.trainer_id,
+         c.name,
+         c.description,
+         c.category,
+         c.difficulty,
+         c.price,
+         c.thumbnail_url,
+         c.duration_label,
+         c.session_count,
+         c.spot_limit,
+         c.created_at,
+         u.full_name AS trainer_name,
+         COUNT(e.member_id)::INT AS enrolled_count
+       FROM courses c
+       JOIN users u ON u.user_id = c.trainer_id
+       LEFT JOIN enrollments e ON e.course_id = c.course_id
+       ${whereClause}
+       GROUP BY c.course_id, u.full_name
+     )
+     SELECT
+       course_rows.*,
+       COUNT(*) OVER()::INT AS total_count
+     FROM course_rows
+     ORDER BY created_at DESC
+     LIMIT $${limitIdx}
+     OFFSET $${offsetIdx}`,
     values
   );
 

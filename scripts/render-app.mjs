@@ -31,14 +31,25 @@ const { unregister } = register({
   logLevel: 'silent',
 })
 const require = createRequire(import.meta.url)
+const { QueryClientProvider } = require('@tanstack/react-query')
 const App = require('../src/App.jsx').default
+const { queryClient } = require('../src/lib/queryClient.js')
 
 const container = document.getElementById('root')
 const root = createRoot(container)
 
-root.render(React.createElement(App))
+root.render(
+  React.createElement(
+    QueryClientProvider,
+    { client: queryClient },
+    React.createElement(App)
+  )
+)
 
 setTimeout(() => {
   console.log('Rendered App without crashing')
+  root.unmount()
+  queryClient.clear()
   unregister()
+  process.exit(0)
 }, 1000)

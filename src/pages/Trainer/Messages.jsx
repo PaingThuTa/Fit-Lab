@@ -1,41 +1,22 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
 import { useAuthStore } from '../../store/useAuthStore'
 import { getThreadMessages, getThreads } from '../../services/messageService'
 import { useApiMode } from '../../lib/dataMode'
+import { queryKeys } from '../../lib/queryKeys'
 
 const TrainerMessages = () => {
   const user = useAuthStore((state) => state.user)
   const currentName = user?.name ?? 'Avery Cole'
-  const [threads, setThreads] = useState([])
   const [selectedId, setSelectedId] = useState(null)
-  const [threadMessages, setThreadMessages] = useState([])
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let mounted = true
-    const loadThreads = async () => {
-      setError('')
-      try {
-        const nextThreads = await getThreads({ role: 'trainer', currentName })
-        if (mounted) {
-          setThreads(nextThreads)
-          setSelectedId((prev) => prev || nextThreads[0]?.id || null)
-        }
-      } catch (loadError) {
-        if (mounted) {
-          setError(loadError.message || 'Unable to load messages')
-        }
-      }
-    }
-
-    loadThreads()
-    return () => {
-      mounted = false
-    }
-  }, [currentName])
+  const threadsQuery = useQuery({
+    queryKey: queryKeys.messageThreads('trainer'),
+    queryFn: ({ signal }) => getThreads({ role: 'trainer', currentName, signal }),
+  })
+  const threads = useMemo(() => threadsQuery.data || [], [threadsQuery.data])
 
   const selectedThread = useMemo(() => {
     if (threads.length === 0) return null
@@ -43,49 +24,42 @@ const TrainerMessages = () => {
   }, [threads, selectedId])
 
   useEffect(() => {
-    let mounted = true
-    const loadThreadMessages = async () => {
-      if (!selectedThread) {
-        setThreadMessages([])
-        return
-      }
-
-      if (!useApiMode) {
-        setThreadMessages(selectedThread.messages || [])
-        return
-      }
-
-      try {
-        const messages = await getThreadMessages({
-          otherUserId: selectedThread.otherUserId,
-          courseId: selectedThread.courseId,
-        })
-        if (mounted) {
-          setThreadMessages(
-            messages.map((message) => ({
-              sender: message.senderId === user?.userId ? 'trainer' : 'member',
-              text: message.content,
-              time: new Date(message.sentAt).toLocaleString(),
-            }))
-          )
-        }
-      } catch (loadError) {
-        if (mounted) {
-          setError(loadError.message || 'Unable to load thread')
-        }
-      }
+    if (threads.length > 0) {
+      setSelectedId((prev) => prev || threads[0].id)
     }
+  }, [threads])
 
-    loadThreadMessages()
-    return () => {
-      mounted = false
-    }
-  }, [selectedThread, user])
+  const threadMessagesQuery = useQuery({
+    queryKey: queryKeys.threadMessages({
+      otherUserId: selectedThread?.otherUserId,
+      courseId: selectedThread?.courseId,
+    }),
+    queryFn: ({ signal }) =>
+      getThreadMessages({
+        otherUserId: selectedThread?.otherUserId,
+        courseId: selectedThread?.courseId,
+        signal,
+      }),
+    enabled: Boolean(selectedThread) && useApiMode,
+  })
+
+  const threadMessages = useMemo(() => {
+    if (!selectedThread) return []
+    if (!useApiMode) return selectedThread.messages || []
+    const messages = threadMessagesQuery.data || []
+    return messages.map((message) => ({
+      sender: message.senderId === user?.userId ? 'trainer' : 'member',
+      text: message.content,
+      time: new Date(message.sentAt).toLocaleString(),
+    }))
+  }, [selectedThread, threadMessagesQuery.data, user?.userId])
+  const error = threadsQuery.error?.message || threadMessagesQuery.error?.message || ''
 
   return (
     <div className="grid gap-6 lg:grid-cols-[320px,1fr]">
       <Card title="Member messages" description="Sample conversations are preloaded so you can preview the flow">
         {error ? <p className="mb-2 text-sm text-red-600">{error}</p> : null}
+        {threadsQuery.isPending ? <p className="mb-2 text-sm text-slate-500">Loading conversations...</p> : null}
         <div className="space-y-2">
           {threads.length === 0 && <p className="text-sm text-slate-500">No conversations yet.</p>}
           {threads.map((thread) => (
@@ -114,6 +88,9 @@ const TrainerMessages = () => {
         {selectedThread ? (
           <div className="flex h-full flex-col gap-4">
             <div className="space-y-3 rounded-2xl bg-slate-50 p-4 dark:bg-slate-900/60">
+              {threadMessagesQuery.isPending ? (
+                <p className="text-sm text-slate-500">Loading thread...</p>
+              ) : null}
               {threadMessages.map((message, index) => (
                 <div key={index} className="flex flex-col">
                   <span className="text-xs uppercase text-slate-400">{message.sender}</span>

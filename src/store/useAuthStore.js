@@ -7,7 +7,7 @@ const fallbackProfiles = {
   admin: { name: 'Morgan Lee', role: 'admin', email: 'morgan@fit-lab.app' },
 }
 
-export const useAuthStore = create((set, get) => ({
+export const useAuthStore = create((set) => ({
   user: null,
   role: null,
   token: null,
@@ -16,29 +16,21 @@ export const useAuthStore = create((set, get) => ({
   authLoading: false,
   authError: null,
 
-  hydrateAuth: async () => {
-    if (get().authReady) return
+  setHydrationLoading: () =>
+    set({
+      authReady: false,
+      authLoading: true,
+      authError: null,
+    }),
 
-    set({ authLoading: true, authError: null })
-
-    try {
-      const user = await authService.getMe()
-
-      set({
-        user,
-        role: user?.role || null,
-        authReady: true,
-        authLoading: false,
-      })
-    } catch {
-      set({
-        user: null,
-        role: null,
-        authReady: true,
-        authLoading: false,
-      })
-    }
-  },
+  setHydratedAuth: (user) =>
+    set({
+      user: user || null,
+      role: user?.role || null,
+      authReady: true,
+      authLoading: false,
+      authError: null,
+    }),
 
   login: async ({ email, password, name, role }) => {
     set({ authLoading: true, authError: null })
@@ -49,6 +41,7 @@ export const useAuthStore = create((set, get) => ({
         user: result.user,
         role: result.user?.role || null,
         token: result.token,
+        authReady: true,
         authLoading: false,
       })
 
@@ -68,6 +61,7 @@ export const useAuthStore = create((set, get) => ({
         user: result.user,
         role: result.user?.role || null,
         token: result.token,
+        authReady: true,
         authLoading: false,
       })
 
@@ -80,7 +74,7 @@ export const useAuthStore = create((set, get) => ({
 
   logout: () => {
     authService.logout()
-    set({ user: null, role: null, token: null, authError: null })
+    set({ user: null, role: null, token: null, authError: null, authReady: true })
   },
 
   setRole: (role, name, email) =>
