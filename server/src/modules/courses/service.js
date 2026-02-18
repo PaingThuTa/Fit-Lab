@@ -22,9 +22,6 @@ function mapCourse(row, lessons = null) {
     difficulty: row.difficulty,
     price: Number(row.price),
     thumbnailUrl: row.thumbnail_url,
-    durationLabel: row.duration_label,
-    sessionCount: row.session_count,
-    spotLimit: row.spot_limit,
     enrolledCount: row.enrolled_count,
     createdAt: row.created_at,
     syllabus: lessons ? lessons.map((lesson) => lesson.title) : undefined,
@@ -57,9 +54,6 @@ function validateCoursePayload(payload, allowPartial = false) {
     difficulty: payload.difficulty ? toDifficulty(payload.difficulty) : undefined,
     price: payload.price,
     thumbnailUrl: payload.thumbnailUrl,
-    durationLabel: payload.durationLabel,
-    sessionCount: payload.sessionCount,
-    spotLimit: payload.spotLimit,
     syllabus: payload.syllabus,
   };
 
@@ -74,14 +68,6 @@ function validateCoursePayload(payload, allowPartial = false) {
 
   if (sanitized.price !== undefined && sanitized.price !== null) {
     sanitized.price = Number(sanitized.price);
-  }
-
-  if (sanitized.sessionCount !== undefined && sanitized.sessionCount !== null) {
-    sanitized.sessionCount = Number(sanitized.sessionCount);
-  }
-
-  if (sanitized.spotLimit !== undefined && sanitized.spotLimit !== null) {
-    sanitized.spotLimit = Number(sanitized.spotLimit);
   }
 
   if (sanitized.syllabus && !Array.isArray(sanitized.syllabus)) {
