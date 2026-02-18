@@ -9,6 +9,7 @@ import { listCoursesPage } from '../../services/courseService'
 import { getMyProposal } from '../../services/proposalService'
 import { enrollInCourse } from '../../services/enrollmentService'
 import { queryKeys } from '../../lib/queryKeys'
+import { formatShortDate } from '../../services/formatters'
 
 const Home = () => {
   const user = useAuthStore((state) => state.user)
@@ -69,7 +70,7 @@ const Home = () => {
   const fallbackCourses = (dashboard.courses || []).map((course) => ({
     id: course.courseId,
     title: course.name,
-    duration: course.durationLabel || 'TBD',
+    category: course.category || '',
     level: course.difficulty || 'BEGINNER',
     trainerName: course.trainerName,
     price: `$${Number(course.price || 0).toFixed(0)}`,
@@ -78,9 +79,10 @@ const Home = () => {
   }))
   const courses = coursesQuery.data?.courses?.length ? coursesQuery.data.courses : fallbackCourses
   const myEnrollments = (dashboard.myEnrollments || []).map((enrollment) => ({
-    id: `${enrollment.courseId}-${enrollment.progressPercent}`,
+    id: `${enrollment.courseId}-${enrollment.enrolledAt || 'na'}`,
     courseId: enrollment.courseId,
-    progress: enrollment.progressPercent || 0,
+    courseName: enrollment.courseName || '',
+    enrolledAt: enrollment.enrolledAt || null,
   }))
   const myTrainerApplication = proposalQuery.data || null
   const loading = dashboardQuery.isPending || coursesQuery.isPending || proposalQuery.isPending
@@ -159,7 +161,7 @@ const Home = () => {
           </div>
           <div className="grid gap-6 md:grid-cols-2">
             {courses.map((course) => (
-              <Card key={course.id} title={course.title} description={`${course.level} • ${course.duration}`}>
+              <Card key={course.id} title={course.title} description={`${course.level} • ${course.category || 'Uncategorized'}`}>
                 <p className="text-sm text-slate-600 dark:text-slate-300">{course.description}</p>
                 <div className="mt-4 flex items-center justify-between text-sm">
                   <span className="font-semibold text-primary-600">{course.price}</span>
@@ -187,7 +189,7 @@ const Home = () => {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">My enrolled courses</h2>
-              <p className="text-sm text-slate-500">Track progress and jump back into the next lesson.</p>
+              <p className="text-sm text-slate-500">Review enrolled dates and jump back into the next lesson.</p>
             </div>
             <Button as={Link} to="/member/my-courses" variant="outline">
               Open enrollment list
@@ -204,19 +206,19 @@ const Home = () => {
                 return (
                   <Card
                     key={item.id}
-                    title={course?.title ?? 'Course removed'}
-                    description={`Progress ${item.progress}%`}
+                    title={course?.title || item.courseName || 'Course removed'}
+                    description={`Enrolled ${formatShortDate(item.enrolledAt)}`}
                   >
-                    <div className="mt-4 h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800">
-                      <div
-                        className="h-full rounded-full bg-primary-500"
-                        style={{ width: `${item.progress}%` }}
-                      />
-                    </div>
                     <div className="mt-4 flex items-center justify-between text-sm">
-                      <Button size="sm" variant="outline">
-                        Resume
-                      </Button>
+                      {item.courseId ? (
+                        <Button as={Link} to={`/member/courses/${item.courseId}`} size="sm" variant="outline">
+                          Resume
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" disabled>
+                          Course unavailable
+                        </Button>
+                      )}
                     </div>
                   </Card>
                 )

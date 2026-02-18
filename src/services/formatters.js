@@ -3,6 +3,17 @@ export function formatPrice(amount) {
   return `$${numeric.toFixed(0)}`
 }
 
+export function formatShortDate(value) {
+  if (!value) return 'N/A'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'N/A'
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date)
+}
+
 export function toDisplayDifficulty(value) {
   if (!value) return 'All Levels'
   const lower = String(value).toLowerCase()

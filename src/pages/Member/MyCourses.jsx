@@ -5,6 +5,7 @@ import Button from '../../components/Button'
 import { useAuthStore } from '../../store/useAuthStore'
 import { getMyEnrollments } from '../../services/enrollmentService'
 import { listCourses } from '../../services/courseService'
+import { formatShortDate } from '../../services/formatters'
 
 const MyCourses = () => {
   const user = useAuthStore((state) => state.user)
@@ -55,7 +56,7 @@ const MyCourses = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">My courses</h1>
-        <p className="text-sm text-slate-500">Track your progress and pickup where you left off.</p>
+        <p className="text-sm text-slate-500">Review enrolled dates and pick up where you left off.</p>
       </div>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       {loading ? (
@@ -77,17 +78,19 @@ const MyCourses = () => {
             return (
               <Card
                 key={item.id}
-                title={course?.title ?? 'Course removed'}
-                description={`Progress ${item.progress}%`}
+                title={course?.title || item.courseName || 'Course removed'}
+                description={`Enrolled ${formatShortDate(item.enrolledAt)}`}
               >
-                <div className="mt-4 h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800">
-                  <div
-                    className="h-full rounded-full bg-primary-500"
-                    style={{ width: `${item.progress}%` }}
-                  />
-                </div>
                 <div className="mt-4 flex items-center justify-between text-sm">
-                  <Button size="sm">Resume</Button>
+                  {item.courseId ? (
+                    <Button as={Link} to={`/member/courses/${item.courseId}`} size="sm">
+                      Resume
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" disabled>
+                      Course unavailable
+                    </Button>
+                  )}
                 </div>
               </Card>
             )

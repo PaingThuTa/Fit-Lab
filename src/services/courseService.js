@@ -51,7 +51,7 @@ function mapApiCourseToUi(course) {
   return {
     id: course.courseId,
     title: course.name,
-    duration: course.durationLabel || 'TBD',
+    category: course.category || '',
     level: toDisplayDifficulty(course.difficulty),
     trainerName: course.trainerName,
     price: formatPrice(course.price),
@@ -64,12 +64,13 @@ function mapApiCourseToUi(course) {
 
 function mapUiCourseToApi(course) {
   const lessons = normalizeLessonsForPayload(course)
+  const category = String(course.category || '').trim()
   return {
     name: course.title,
     description: course.description,
+    category: category || null,
     difficulty: toApiDifficulty(course.level),
     price: Number(String(course.price || '0').replace(/[^0-9.]/g, '')),
-    durationLabel: course.duration,
     lessons,
     syllabus: lessons.map((lesson) => lesson.title),
   }

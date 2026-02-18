@@ -94,7 +94,7 @@ const Courses = () => {
           <Card
             key={course.id}
             title={course.title}
-            description={`${course.level} • ${course.duration}`}
+            description={`${course.level} • ${course.category || 'Uncategorized'}`}
             action={<span className="text-sm font-semibold text-primary-600">{course.price}</span>}
           >
             <p className="text-sm text-slate-600 dark:text-slate-300">{course.description}</p>

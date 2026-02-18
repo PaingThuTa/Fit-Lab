@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '../../store/useAuthStore'
 import { getTrainerEnrollments } from '../../services/enrollmentService'
 import { listCourses } from '../../services/courseService'
+import { formatShortDate } from '../../services/formatters'
 
 const Enrollments = () => {
   const user = useAuthStore((state) => state.user)
@@ -52,7 +53,7 @@ const Enrollments = () => {
           <tr>
             <th className="py-3">Member</th>
             <th>Course</th>
-            <th>Progress</th>
+            <th>Enrolled</th>
             <th className="text-right">Actions</th>
           </tr>
         </thead>
@@ -62,15 +63,8 @@ const Enrollments = () => {
             return (
               <tr key={enrollment.id} className="text-slate-600 dark:text-slate-300">
                 <td className="py-3 font-medium text-slate-900 dark:text-white">{enrollment.memberName}</td>
-                <td>{course?.title ?? 'Removed course'}</td>
-                <td>
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-24 rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-primary-500" style={{ width: `${enrollment.progress}%` }} />
-                    </div>
-                    {enrollment.progress}%
-                  </div>
-                </td>
+                <td>{enrollment.courseName || course?.title || 'Removed course'}</td>
+                <td>{formatShortDate(enrollment.enrolledAt)}</td>
                 <td className="text-right">
                   <Button as={Link} to="/trainer/messages" size="sm" variant="outline">
                     Message
