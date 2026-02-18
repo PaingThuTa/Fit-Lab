@@ -6,7 +6,6 @@ async function getMemberEnrollments(memberId) {
     memberId: row.member_id,
     courseId: row.course_id,
     enrolledAt: row.enrolled_at,
-    progressPercent: 0,
     course: {
       name: row.course_name,
       description: row.course_description,
@@ -27,7 +26,6 @@ async function getTrainerEnrollments(trainerId) {
     courseName: row.course_name,
     difficulty: row.difficulty,
     enrolledAt: row.enrolled_at,
-    progressPercent: 0,
   }));
 }
 

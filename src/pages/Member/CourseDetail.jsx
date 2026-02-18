@@ -84,7 +84,7 @@ const CourseDetail = () => {
     <div className="space-y-6">
       <Card
         title={course.title}
-        description={`${course.level} • ${course.duration} • Led by ${course.trainerName}`}
+        description={`${course.level} • ${course.category || 'Uncategorized'} • Led by ${course.trainerName}`}
         action={<span className="text-2xl font-semibold text-primary-600">{course.price}</span>}
       >
         <p className="text-slate-600 dark:text-slate-300">{course.description}</p>

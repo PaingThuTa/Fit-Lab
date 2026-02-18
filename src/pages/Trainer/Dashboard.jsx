@@ -48,7 +48,7 @@ const TrainerDashboard = () => {
 
   const metrics = [
     { label: 'Live courses', value: dashboard.liveCourses, trend: 'Create or edit cohorts' },
-    { label: 'Enrollments', value: dashboard.enrollments, trend: 'Track member progress' },
+    { label: 'Enrollments', value: dashboard.enrollments, trend: 'Track member enrollment status' },
     { label: 'Member messages', value: dashboard.memberMessages, trend: 'Respond to DMs' },
   ]
 

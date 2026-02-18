@@ -17,13 +17,14 @@ async function getMemberDashboard(userId) {
       courseId: row.course_id,
       name: row.name,
       description: row.description,
+      category: row.category,
       difficulty: row.difficulty,
       price: Number(row.price),
       trainerName: row.trainer_name,
     })),
     myEnrollments: enrollmentRows.map((row) => ({
       courseId: row.course_id,
-      progressPercent: 0,
+      enrolledAt: row.enrolled_at,
       courseName: row.course_name,
     })),
   };

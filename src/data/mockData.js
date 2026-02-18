@@ -2,7 +2,7 @@ export const courses = [
   {
     id: 'c1',
     title: 'Foundations of Strength',
-    duration: '6 Weeks',
+    category: 'Strength',
     level: 'Intermediate',
     trainerName: 'Avery Cole',
     price: '$149',
@@ -13,7 +13,7 @@ export const courses = [
   {
     id: 'c2',
     title: 'HIIT Accelerator',
-    duration: '4 Weeks',
+    category: 'Conditioning',
     level: 'All Levels',
     trainerName: 'Maya Hernandez',
     price: '$129',
@@ -24,7 +24,7 @@ export const courses = [
   {
     id: 'c3',
     title: 'Mobility Reset',
-    duration: '3 Weeks',
+    category: 'Mobility',
     level: 'Beginner',
     trainerName: 'Dev Kapoor',
     price: '$89',
@@ -38,20 +38,23 @@ export const enrollments = [
   {
     id: 'e1',
     courseId: 'c1',
+    courseName: 'Foundations of Strength',
     memberName: 'Jordan Wells',
-    progress: 45,
+    enrolledAt: '2026-01-12T09:00:00.000Z',
   },
   {
     id: 'e2',
     courseId: 'c2',
+    courseName: 'HIIT Accelerator',
     memberName: 'Jordan Wells',
-    progress: 72,
+    enrolledAt: '2026-01-20T14:30:00.000Z',
   },
   {
     id: 'e3',
     courseId: 'c3',
+    courseName: 'Mobility Reset',
     memberName: 'Aida Cooper',
-    progress: 0,
+    enrolledAt: '2026-02-02T16:45:00.000Z',
   },
 ]
 
