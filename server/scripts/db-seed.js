@@ -3,7 +3,7 @@ const path = require('path');
 const pool = require('../src/config/db');
 
 async function run() {
-  const seedPath = path.join(__dirname, '..', 'src', 'db', 'seeds', '001_seed.sql');
+  const seedPath = path.join(__dirname, '..', 'src', 'db', 'migrations', '003_seed.sql');
   const seedSql = fs.readFileSync(seedPath, 'utf8');
   const client = await pool.connect();
 
