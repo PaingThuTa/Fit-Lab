@@ -59,10 +59,16 @@ const enrollCourse = asyncHandler(async (req, res) => {
   res.status(201).json({ message: 'Enrollment successful' });
 });
 
+const deleteCourse = asyncHandler(async (req, res) => {
+  await service.deleteCourse(req.params.courseId, req.user);
+  res.status(204).send();
+});
+
 module.exports = {
   listCourses,
   getCourse,
   createCourse,
   updateCourse,
   enrollCourse,
+  deleteCourse,
 };
