@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import Card from '../../components/Card'
-import Button from '../../components/Button'
 import { getAdminCourses } from '../../services/adminService'
 
 const CoursesList = () => {
@@ -38,7 +37,6 @@ const CoursesList = () => {
               <th className="py-3">Course</th>
               <th>Trainer</th>
               <th>Level</th>
-              <th className="text-right">Actions</th>
             </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -47,11 +45,6 @@ const CoursesList = () => {
               <td className="py-3 font-medium text-slate-900 dark:text-white">{course.name}</td>
               <td>{course.trainerName}</td>
               <td>{course.difficulty}</td>
-              <td className="text-right">
-                <Button size="sm" variant="outline">
-                  Audit
-                </Button>
-              </td>
             </tr>
           ))}
         </tbody>
