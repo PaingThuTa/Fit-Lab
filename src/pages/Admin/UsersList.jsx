@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import Card from '../../components/Card'
-import Button from '../../components/Button'
 import { getAdminUsers } from '../../services/adminService'
 
 const UsersList = () => {
@@ -39,23 +38,17 @@ const UsersList = () => {
             <th>Email</th>
             <th>Role</th>
             <th>Trainer application</th>
-            <th className="text-right">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {users.map((user) => {
             return (
               <tr key={user.userId || user.email || user.fullName} className="text-slate-600 dark:text-slate-300">
-              <td className="py-3 font-medium text-slate-900 dark:text-white">{user.fullName}</td>
-              <td>{user.email}</td>
-              <td className="capitalize">{user.role}</td>
-              <td className="capitalize">{user.trainerApplicationStatus || 'none'}</td>
-              <td className="text-right">
-                <Button size="sm" variant="outline">
-                  Manage
-                </Button>
-              </td>
-            </tr>
+                <td className="py-3 font-medium text-slate-900 dark:text-white">{user.fullName}</td>
+                <td>{user.email}</td>
+                <td className="capitalize">{user.role}</td>
+                <td className="capitalize">{user.trainerApplicationStatus || 'none'}</td>
+              </tr>
             )
           })}
         </tbody>
