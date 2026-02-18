@@ -59,9 +59,7 @@ const Home = () => {
     title: course.name,
     duration: course.durationLabel || 'TBD',
     level: course.difficulty || 'BEGINNER',
-    sessions: course.sessionCount || 0,
     trainerName: course.trainerName,
-    spots: course.spotLimit || 0,
     price: `$${Number(course.price || 0).toFixed(0)}`,
     description: course.description || '',
     syllabus: [],
@@ -145,7 +143,6 @@ const Home = () => {
               <Card key={course.id} title={course.title} description={`${course.level} • ${course.duration}`}>
                 <p className="text-sm text-slate-600 dark:text-slate-300">{course.description}</p>
                 <div className="mt-4 flex items-center justify-between text-sm">
-                  <span>{course.sessions} Lessons</span>
                   <span className="font-semibold text-primary-600">{course.price}</span>
                 </div>
                 <div className="mt-5 flex items-center gap-3">
@@ -192,7 +189,6 @@ const Home = () => {
                       />
                     </div>
                     <div className="mt-4 flex items-center justify-between text-sm">
-                      <span>{course?.sessions ?? 0} Lessons</span>
                       <Button size="sm" variant="outline">
                         Resume
                       </Button>

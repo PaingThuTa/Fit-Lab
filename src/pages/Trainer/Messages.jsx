@@ -131,7 +131,6 @@ const TrainerMessages = () => {
                 >
                   {sendMessageMutation.isPending ? 'Sending...' : 'Send'}
                 </Button>
-                <Button variant="outline" size="sm" disabled={useApiMode}>Attach</Button>
               </div>
               {useApiMode ? <p className="text-xs text-slate-400">Send is enabled in API mode.</p> : null}
             </div>

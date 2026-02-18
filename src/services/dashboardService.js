@@ -37,7 +37,6 @@ export async function getTrainerDashboard({ trainerName, signal } = {}) {
     courses: courses.map((course) => ({
       courseId: course.id,
       name: course.title,
-      sessionCount: course.sessions,
       difficulty: course.level,
       enrolledCount: state.enrollments.filter((enrollment) => enrollment.courseId === course.id).length,
     })),

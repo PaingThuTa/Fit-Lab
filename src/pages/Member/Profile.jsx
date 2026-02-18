@@ -24,7 +24,7 @@ const Profile = () => {
         <div className="mt-6 space-y-3 text-sm text-slate-600 dark:text-slate-300">
           <p>Location: {profile.city ?? 'Remote'}</p>
           <p>Joined: Feb 2022</p>
-          <p>Preferred focus: Hybrid strength</p>
+          <p>Preferred focus: Strength</p>
         </div>
         <div className="mt-6 flex flex-wrap gap-3">
           <Button size="sm">Edit profile</Button>
@@ -37,7 +37,7 @@ const Profile = () => {
         <div className="grid gap-4 md:grid-cols-2">
           {[
             { label: 'Weekly streak', value: '5 weeks' },
-            { label: 'Total sessions', value: '124' },
+            { label: 'Total workouts', value: '124' },
             { label: 'Courses finished', value: '6' },
             { label: 'Coach chats', value: '18' },
           ].map((item) => (

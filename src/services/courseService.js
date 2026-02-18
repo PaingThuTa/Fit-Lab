@@ -9,9 +9,7 @@ function mapApiCourseToUi(course) {
     title: course.name,
     duration: course.durationLabel || 'TBD',
     level: toDisplayDifficulty(course.difficulty),
-    sessions: course.sessionCount || 0,
     trainerName: course.trainerName,
-    spots: course.spotLimit || 0,
     price: formatPrice(course.price),
     description: course.description || '',
     syllabus: course.syllabus || [],
@@ -26,8 +24,6 @@ function mapUiCourseToApi(course) {
     difficulty: toApiDifficulty(course.level),
     price: Number(String(course.price || '0').replace(/[^0-9.]/g, '')),
     durationLabel: course.duration,
-    sessionCount: Number(course.sessions || 0),
-    spotLimit: Number(course.spots || 0),
     syllabus: Array.isArray(course.syllabus) ? course.syllabus : [],
   }
 }
