@@ -42,8 +42,6 @@ const EditCourse = () => {
       title: course.title,
       duration: course.duration,
       level: course.level,
-      sessions: String(course.sessions || ''),
-      spots: String(course.spots || ''),
       price: course.price,
       description: course.description || '',
       syllabus: (course.syllabus || []).join('\n'),
@@ -66,8 +64,6 @@ const EditCourse = () => {
         title: currentForm.title,
         duration: currentForm.duration,
         level: currentForm.level,
-        sessions: Number(currentForm.sessions || 0),
-        spots: Number(currentForm.spots || 0),
         price: currentForm.price,
         description: currentForm.description,
         syllabus: currentForm.syllabus
@@ -105,8 +101,6 @@ const EditCourse = () => {
             ))}
           </select>
         </label>
-        <Input label="Sessions" name="sessions" value={currentForm.sessions} onChange={handleChange} />
-        <Input label="Spots" name="spots" value={currentForm.spots} onChange={handleChange} />
         <Input label="Price" name="price" value={currentForm.price} onChange={handleChange} />
         <label className="md:col-span-2">
           <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Description</span>

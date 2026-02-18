@@ -4,9 +4,7 @@ export const courses = [
     title: 'Foundations of Strength',
     duration: '6 Weeks',
     level: 'Intermediate',
-    sessions: 18,
     trainerName: 'Avery Cole',
-    spots: 24,
     price: '$149',
     description:
       'Program focused on progressive overload, movement fundamentals, and accessory stability work.',
@@ -17,9 +15,7 @@ export const courses = [
     title: 'HIIT Accelerator',
     duration: '4 Weeks',
     level: 'All Levels',
-    sessions: 12,
     trainerName: 'Maya Hernandez',
-    spots: 30,
     price: '$129',
     description:
       'Interval-based approach combining power, speed, and metabolic finishers to boost conditioning.',
@@ -30,9 +26,7 @@ export const courses = [
     title: 'Mobility Reset',
     duration: '3 Weeks',
     level: 'Beginner',
-    sessions: 9,
     trainerName: 'Dev Kapoor',
-    spots: 18,
     price: '$89',
     description:
       'Low-impact plan to restore posture, joint health, and breathing mechanics.',

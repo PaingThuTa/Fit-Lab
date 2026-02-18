@@ -94,13 +94,12 @@ const Courses = () => {
           <Card
             key={course.id}
             title={course.title}
-            description={`${course.level} • ${course.duration} • ${course.sessions} sessions`}
+            description={`${course.level} • ${course.duration}`}
             action={<span className="text-sm font-semibold text-primary-600">{course.price}</span>}
           >
             <p className="text-sm text-slate-600 dark:text-slate-300">{course.description}</p>
             <p className="mt-3 text-xs uppercase tracking-wider text-slate-400">Trainer • {course.trainerName}</p>
-            <div className="mt-4 flex items-center justify-between text-sm text-slate-500">
-              <span>{course.spots} spots</span>
+            <div className="mt-4 flex items-center justify-end text-sm text-slate-500">
               <div className="flex gap-2">
                 <Button as={Link} to={`/member/courses/${course.id}`} size="sm">
                   Details

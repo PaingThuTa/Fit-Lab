@@ -87,7 +87,6 @@ const MyCourses = () => {
                   />
                 </div>
                 <div className="mt-4 flex items-center justify-between text-sm">
-                  <span>{course?.sessions ?? 0} Sessions</span>
                   <Button size="sm">Resume</Button>
                 </div>
               </Card>

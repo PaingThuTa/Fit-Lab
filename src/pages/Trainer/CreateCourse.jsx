@@ -16,8 +16,6 @@ const CreateCourse = () => {
     title: '',
     duration: '',
     level: '',
-    sessions: '',
-    spots: '',
     price: '',
     description: '',
     syllabus: '',
@@ -49,8 +47,6 @@ const CreateCourse = () => {
         title: form.title,
         duration: form.duration,
         level: form.level,
-        sessions: Number(form.sessions || 0),
-        spots: Number(form.spots || 0),
         price: form.price,
         description: form.description,
         syllabus: form.syllabus
@@ -84,8 +80,6 @@ const CreateCourse = () => {
             ))}
           </select>
         </label>
-        <Input label="Sessions" name="sessions" value={form.sessions} onChange={handleChange} placeholder="12" />
-        <Input label="Spots" name="spots" value={form.spots} onChange={handleChange} placeholder="20" />
         <Input label="Price" name="price" value={form.price} onChange={handleChange} placeholder="$149" />
         <label className="md:col-span-2">
           <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Description</span>

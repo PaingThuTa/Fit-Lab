@@ -91,7 +91,7 @@ const TrainerDashboard = () => {
             <div key={course.courseId} className="flex flex-wrap items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800">
               <div>
                 <p className="font-medium text-slate-900 dark:text-white">{course.name}</p>
-                <p className="text-xs text-slate-500">{course.sessionCount} lessons • {course.difficulty}</p>
+                <p className="text-xs text-slate-500">{course.difficulty}</p>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-slate-500">

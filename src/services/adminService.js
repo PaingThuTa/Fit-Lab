@@ -53,8 +53,6 @@ export async function getAdminCourses() {
     name: course.title,
     trainerName: course.trainerName,
     difficulty: course.level,
-    spotLimit: course.spots,
-    sessionCount: course.sessions,
     enrolledCount: state.enrollments.filter((enrollment) => enrollment.courseId === course.id).length,
   }))
 }

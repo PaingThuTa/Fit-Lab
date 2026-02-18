@@ -163,7 +163,6 @@ const MemberMessages = () => {
               />
               <div className="flex gap-3">
                 <Button size="sm" disabled={!useApiMode || !draft.trim()} onClick={handleSend}>Send</Button>
-                <Button variant="outline" size="sm" disabled={useApiMode}>Attach</Button>
               </div>
               {useApiMode ? <p className="text-xs text-slate-400">Send is enabled in API mode.</p> : null}
             </div>
