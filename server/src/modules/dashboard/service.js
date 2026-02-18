@@ -18,17 +18,13 @@ async function getMemberDashboard(userId) {
       name: row.name,
       description: row.description,
       difficulty: row.difficulty,
-      durationLabel: row.duration_label,
-      sessionCount: row.session_count,
-      spotLimit: row.spot_limit,
       price: Number(row.price),
       trainerName: row.trainer_name,
     })),
     myEnrollments: enrollmentRows.map((row) => ({
       courseId: row.course_id,
-      progressPercent: row.progress_percent,
+      progressPercent: 0,
       courseName: row.course_name,
-      sessionCount: row.session_count,
     })),
   };
 }
@@ -58,7 +54,6 @@ async function getTrainerDashboard(trainerId) {
     courses: courseRows.map((row) => ({
       courseId: row.course_id,
       name: row.name,
-      sessionCount: row.session_count,
       difficulty: row.difficulty,
       enrolledCount: row.enrolled_count,
     })),

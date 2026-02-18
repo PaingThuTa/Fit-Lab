@@ -10,11 +10,6 @@ function mapProposal(row) {
     applicantName: row.applicant_name,
     applicantEmail: row.applicant_email,
     message: row.message,
-    specialties: row.specialties || [],
-    certifications: row.certifications || [],
-    experienceYears: row.experience_years,
-    sampleCourse: row.sample_course,
-    bio: row.bio,
     status: String(row.status || '').toLowerCase(),
     reviewerId: row.reviewer_id,
     reviewerName: row.reviewer_name,
@@ -25,21 +20,6 @@ function mapProposal(row) {
   };
 }
 
-function normalizeList(value) {
-  if (Array.isArray(value)) {
-    return value.map((item) => String(item).trim()).filter(Boolean);
-  }
-
-  if (typeof value === 'string') {
-    return value
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-
-  return [];
-}
-
 async function getMyProposal(userId) {
   const proposal = await repository.findProposalByUserId(userId);
   return proposal ? mapProposal(proposal) : null;
@@ -47,11 +27,6 @@ async function getMyProposal(userId) {
 
 async function upsertMyProposal(userId, payload) {
   const message = String(payload.message || '').trim();
-  const specialties = normalizeList(payload.specialties);
-  const certifications = normalizeList(payload.certifications);
-  const experienceYears = Number(payload.experienceYears || 0);
-  const sampleCourse = payload.sampleCourse ? String(payload.sampleCourse).trim() : null;
-  const bio = payload.bio ? String(payload.bio).trim() : null;
 
   if (!message) {
     throw new AppError(400, 'message is required');
@@ -60,11 +35,6 @@ async function upsertMyProposal(userId, payload) {
   await repository.upsertProposal({
     userId,
     message,
-    specialties,
-    certifications,
-    experienceYears,
-    sampleCourse,
-    bio,
   });
 
   return getMyProposal(userId);

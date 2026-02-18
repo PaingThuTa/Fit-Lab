@@ -21,8 +21,6 @@ async function listCourses() {
     name: row.name,
     trainerName: row.trainer_name,
     difficulty: row.difficulty,
-    spotLimit: row.spot_limit,
-    sessionCount: row.session_count,
     enrolledCount: row.enrolled_count,
   }));
 }
