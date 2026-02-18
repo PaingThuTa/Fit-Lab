@@ -51,6 +51,25 @@ const AppLayout = () => (
   </div>
 )
 
+const HomeRedirect = () => {
+  const role = useAuthStore((state) => state.role)
+  const authReady = useAuthStore((state) => state.authReady)
+
+  if (!authReady) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">
+        Loading session...
+      </div>
+    )
+  }
+
+  if (role) {
+    return <Navigate to={`/${role}`} replace />
+  }
+
+  return <Navigate to="/login" replace />
+}
+
 const ProtectedLayout = ({ allowedRoles, sidebarLinks, sidebarTitle }) => {
   const role = useAuthStore((state) => state.role)
   const authReady = useAuthStore((state) => state.authReady)
@@ -83,7 +102,7 @@ const router = createBrowserRouter([
     path: '/',
     element: <AppLayout />,
     children: [
-      { index: true, element: <Navigate to="/login" replace /> },
+      { index: true, element: <HomeRedirect /> },
       { path: 'login', element: <Login /> },
       { path: 'register', element: <Register /> },
       {

@@ -17,10 +17,16 @@ async function listCourses({ query, trainerId, limit, offset }) {
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-  values.push(limit);
-  const limitIdx = values.length;
-  values.push(offset);
-  const offsetIdx = values.length;
+  let paginationClause = '';
+  if (Number.isInteger(limit) && Number.isInteger(offset)) {
+    values.push(limit);
+    const limitIdx = values.length;
+    values.push(offset);
+    const offsetIdx = values.length;
+    paginationClause = `
+     LIMIT $${limitIdx}
+     OFFSET $${offsetIdx}`;
+  }
 
   const { rows } = await pool.query(
     `WITH course_rows AS (
@@ -33,9 +39,6 @@ async function listCourses({ query, trainerId, limit, offset }) {
          c.difficulty,
          c.price,
          c.thumbnail_url,
-         c.duration_label,
-         c.session_count,
-         c.spot_limit,
          c.created_at,
          u.full_name AS trainer_name,
          COUNT(e.member_id)::INT AS enrolled_count
@@ -50,8 +53,7 @@ async function listCourses({ query, trainerId, limit, offset }) {
        COUNT(*) OVER()::INT AS total_count
      FROM course_rows
      ORDER BY created_at DESC
-     LIMIT $${limitIdx}
-     OFFSET $${offsetIdx}`,
+     ${paginationClause}`,
     values
   );
 
@@ -69,9 +71,6 @@ async function findCourseById(courseId) {
        c.difficulty,
        c.price,
        c.thumbnail_url,
-       c.duration_label,
-       c.session_count,
-       c.spot_limit,
        c.created_at,
        u.full_name AS trainer_name,
        COUNT(e.member_id)::INT AS enrolled_count
@@ -89,10 +88,10 @@ async function findCourseById(courseId) {
 
 async function listLessonsByCourseId(courseId) {
   const { rows } = await pool.query(
-    `SELECT lesson_id, title, content, position
+    `SELECT lesson_id, title, content
      FROM lessons
      WHERE course_id = $1
-     ORDER BY position ASC, lesson_id ASC`,
+     ORDER BY lesson_id ASC`,
     [courseId]
   );
 
@@ -108,11 +107,8 @@ async function createCourse(client, payload) {
        category,
        difficulty,
        price,
-       thumbnail_url,
-       duration_label,
-       session_count,
-       spot_limit
-     ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+       thumbnail_url
+     ) VALUES ($1,$2,$3,$4,$5,$6,$7)
      RETURNING course_id`,
     [
       payload.trainerId,
@@ -122,9 +118,6 @@ async function createCourse(client, payload) {
       payload.difficulty || null,
       payload.price,
       payload.thumbnailUrl || null,
-      payload.durationLabel || null,
-      payload.sessionCount,
-      payload.spotLimit,
     ]
   );
 
@@ -142,9 +135,6 @@ async function updateCourse(client, courseId, updates) {
     difficulty: 'difficulty',
     price: 'price',
     thumbnailUrl: 'thumbnail_url',
-    durationLabel: 'duration_label',
-    sessionCount: 'session_count',
-    spotLimit: 'spot_limit',
   };
 
   Object.keys(mapping).forEach((key) => {
@@ -162,18 +152,19 @@ async function updateCourse(client, courseId, updates) {
   await client.query(`UPDATE courses SET ${setClauses.join(', ')} WHERE course_id = $${values.length}`, values);
 }
 
-async function replaceCourseLessons(client, courseId, syllabus) {
+async function replaceCourseLessons(client, courseId, lessons) {
   await client.query('DELETE FROM lessons WHERE course_id = $1', [courseId]);
 
-  if (!Array.isArray(syllabus) || syllabus.length === 0) {
+  if (!Array.isArray(lessons) || lessons.length === 0) {
     return;
   }
 
-  for (let index = 0; index < syllabus.length; index += 1) {
+  for (let index = 0; index < lessons.length; index += 1) {
+    const lesson = lessons[index];
     await client.query(
-      `INSERT INTO lessons (course_id, title, position)
+      `INSERT INTO lessons (course_id, title, content)
        VALUES ($1, $2, $3)`,
-      [courseId, syllabus[index], index + 1]
+      [courseId, lesson.title, lesson.content || null]
     );
   }
 }
@@ -189,6 +180,11 @@ async function createEnrollment({ memberId, courseId }) {
   return rowCount > 0;
 }
 
+async function deleteCourse(courseId) {
+  const { rowCount } = await pool.query('DELETE FROM courses WHERE course_id = $1', [courseId]);
+  return rowCount > 0;
+}
+
 module.exports = {
   listCourses,
   findCourseById,
@@ -197,4 +193,5 @@ module.exports = {
   updateCourse,
   replaceCourseLessons,
   createEnrollment,
+  deleteCourse,
 };

@@ -12,6 +12,14 @@ function toDifficulty(value) {
 }
 
 function mapCourse(row, lessons = null) {
+  const mappedLessons = lessons
+    ? lessons.map((lesson) => ({
+        lessonId: lesson.lesson_id,
+        title: lesson.title,
+        content: lesson.content,
+      }))
+    : undefined;
+
   return {
     courseId: row.course_id,
     trainerId: row.trainer_id,
@@ -22,12 +30,10 @@ function mapCourse(row, lessons = null) {
     difficulty: row.difficulty,
     price: Number(row.price),
     thumbnailUrl: row.thumbnail_url,
-    durationLabel: row.duration_label,
-    sessionCount: row.session_count,
-    spotLimit: row.spot_limit,
     enrolledCount: row.enrolled_count,
     createdAt: row.created_at,
-    syllabus: lessons ? lessons.map((lesson) => lesson.title) : undefined,
+    lessons: mappedLessons,
+    syllabus: mappedLessons ? mappedLessons.map((lesson) => lesson.title) : undefined,
   };
 }
 
@@ -57,10 +63,7 @@ function validateCoursePayload(payload, allowPartial = false) {
     difficulty: payload.difficulty ? toDifficulty(payload.difficulty) : undefined,
     price: payload.price,
     thumbnailUrl: payload.thumbnailUrl,
-    durationLabel: payload.durationLabel,
-    sessionCount: payload.sessionCount,
-    spotLimit: payload.spotLimit,
-    syllabus: payload.syllabus,
+    lessons: payload.lessons,
   };
 
   if (!allowPartial) {
@@ -76,20 +79,43 @@ function validateCoursePayload(payload, allowPartial = false) {
     sanitized.price = Number(sanitized.price);
   }
 
-  if (sanitized.sessionCount !== undefined && sanitized.sessionCount !== null) {
-    sanitized.sessionCount = Number(sanitized.sessionCount);
+  const rawLessons = sanitized.lessons !== undefined ? sanitized.lessons : payload.syllabus;
+
+  if (rawLessons !== undefined && !Array.isArray(rawLessons)) {
+    const fieldName = sanitized.lessons !== undefined ? 'lessons' : 'syllabus';
+    throw new AppError(400, `${fieldName} must be an array`);
   }
 
-  if (sanitized.spotLimit !== undefined && sanitized.spotLimit !== null) {
-    sanitized.spotLimit = Number(sanitized.spotLimit);
-  }
+  if (Array.isArray(rawLessons)) {
+    sanitized.lessons = rawLessons
+      .map((item, index) => {
+        if (typeof item === 'string') {
+          const title = item.trim();
+          if (!title) return null;
+          return { title, content: null };
+        }
 
-  if (sanitized.syllabus && !Array.isArray(sanitized.syllabus)) {
-    throw new AppError(400, 'syllabus must be an array of strings');
-  }
+        if (!item || typeof item !== 'object') {
+          throw new AppError(400, `lesson at index ${index} must be an object`);
+        }
 
-  if (Array.isArray(sanitized.syllabus)) {
-    sanitized.syllabus = sanitized.syllabus.map((item) => String(item).trim()).filter(Boolean);
+        const title = String(item.title || '').trim();
+        const content = item.content === undefined || item.content === null ? null : String(item.content).trim();
+
+        if (!title && !content) {
+          return null;
+        }
+
+        if (!title) {
+          throw new AppError(400, `lesson at index ${index} requires a title`);
+        }
+
+        return {
+          title,
+          content: content || null,
+        };
+      })
+      .filter(Boolean);
   }
 
   return sanitized;
@@ -112,7 +138,7 @@ async function createCourse(payload, actor) {
       trainerId,
     });
 
-    await repository.replaceCourseLessons(client, courseId, sanitized.syllabus || []);
+    await repository.replaceCourseLessons(client, courseId, sanitized.lessons || []);
     await client.query('COMMIT');
     return getCourseById(courseId);
   } catch (error) {
@@ -144,8 +170,8 @@ async function updateCourse(courseId, payload, actor) {
     await client.query('BEGIN');
     await repository.updateCourse(client, courseId, sanitized);
 
-    if (sanitized.syllabus !== undefined) {
-      await repository.replaceCourseLessons(client, courseId, sanitized.syllabus);
+    if (sanitized.lessons !== undefined) {
+      await repository.replaceCourseLessons(client, courseId, sanitized.lessons);
     }
 
     await client.query('COMMIT');
@@ -170,10 +196,31 @@ async function enrollMember(courseId, memberId) {
   }
 }
 
+async function deleteCourse(courseId, actor) {
+  const course = await repository.findCourseById(courseId);
+
+  if (!course) {
+    throw new AppError(404, 'Course not found');
+  }
+
+  const isOwner = course.trainer_id === actor.userId;
+  const isAdmin = actor.role === 'admin';
+
+  if (!isOwner && !isAdmin) {
+    throw new AppError(403, 'You do not have access to delete this course');
+  }
+
+  const deleted = await repository.deleteCourse(courseId);
+  if (!deleted) {
+    throw new AppError(404, 'Course not found');
+  }
+}
+
 module.exports = {
   listCourses,
   getCourseById,
   createCourse,
   updateCourse,
   enrollMember,
+  deleteCourse,
 };

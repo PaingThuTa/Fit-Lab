@@ -14,11 +14,14 @@ export async function enrollInCourse(courseId, { memberName, signal } = {}) {
     throw new Error('Already enrolled in this course')
   }
 
+  const course = state.courses.find((item) => item.id === courseId)
+
   state.enrollments.push({
     id: `e${Date.now()}`,
     courseId,
     memberName,
-    progress: 0,
+    courseName: course?.title || '',
+    enrolledAt: new Date().toISOString(),
   })
 }
 
@@ -29,12 +32,26 @@ export async function getMyEnrollments({ memberName, signal } = {}) {
       id: `${item.memberId}-${item.courseId}`,
       courseId: item.courseId,
       memberName,
-      progress: item.progressPercent,
+      courseName: item.course?.name || '',
+      enrolledAt: item.enrolledAt || null,
     }))
   }
 
   const state = getMockState()
-  return state.enrollments.filter((item) => item.memberName === memberName)
+  const coursesById = state.courses.reduce((acc, course) => {
+    acc[course.id] = course
+    return acc
+  }, {})
+
+  return state.enrollments
+    .filter((item) => item.memberName === memberName)
+    .map((item) => ({
+      id: item.id || `${item.memberName}-${item.courseId}`,
+      courseId: item.courseId,
+      memberName: item.memberName,
+      courseName: item.courseName || coursesById[item.courseId]?.title || '',
+      enrolledAt: item.enrolledAt || null,
+    }))
 }
 
 export async function getTrainerEnrollments({ trainerName, signal } = {}) {
@@ -43,15 +60,35 @@ export async function getTrainerEnrollments({ trainerName, signal } = {}) {
     return payload.enrollments.map((item) => ({
       id: `${item.memberId}-${item.courseId}`,
       courseId: item.courseId,
+      courseName: item.courseName,
       memberName: item.memberName,
-      progress: item.progressPercent,
+      memberEmail: item.memberEmail,
+      difficulty: item.difficulty,
+      enrolledAt: item.enrolledAt || null,
     }))
   }
 
   const state = getMockState()
+  const coursesById = state.courses.reduce((acc, course) => {
+    acc[course.id] = course
+    return acc
+  }, {})
+  const usersByName = state.users.reduce((acc, user) => {
+    acc[user.name] = user
+    return acc
+  }, {})
   const trainerCourseIds = state.courses
     .filter((course) => course.trainerName === trainerName)
     .map((course) => course.id)
 
-  return state.enrollments.filter((enrollment) => trainerCourseIds.includes(enrollment.courseId))
+  return state.enrollments
+    .filter((enrollment) => trainerCourseIds.includes(enrollment.courseId))
+    .map((enrollment) => ({
+      id: enrollment.id || `${enrollment.memberName}-${enrollment.courseId}`,
+      courseId: enrollment.courseId,
+      courseName: enrollment.courseName || coursesById[enrollment.courseId]?.title || '',
+      memberName: enrollment.memberName,
+      memberEmail: usersByName[enrollment.memberName]?.email || '',
+      enrolledAt: enrollment.enrolledAt || null,
+    }))
 }

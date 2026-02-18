@@ -33,9 +33,6 @@ CREATE TABLE IF NOT EXISTS courses (
   difficulty course_difficulty,
   price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
   thumbnail_url TEXT,
-  duration_label TEXT,
-  session_count INTEGER,
-  spot_limit INTEGER,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -43,15 +40,13 @@ CREATE TABLE IF NOT EXISTS lessons (
   lesson_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   course_id UUID NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
-  content TEXT,
-  position INTEGER NOT NULL DEFAULT 0
+  content TEXT
 );
 
 CREATE TABLE IF NOT EXISTS enrollments (
   member_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
   course_id UUID NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
   enrolled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  progress_percent INTEGER NOT NULL DEFAULT 0 CHECK (progress_percent >= 0 AND progress_percent <= 100),
   PRIMARY KEY (member_id, course_id)
 );
 
@@ -69,13 +64,8 @@ CREATE TABLE IF NOT EXISTS trainer_proposals (
   proposal_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL UNIQUE REFERENCES users(user_id) ON DELETE CASCADE,
   message TEXT NOT NULL DEFAULT '',
-  specialties TEXT[] NOT NULL DEFAULT '{}',
-  certifications TEXT[] NOT NULL DEFAULT '{}',
-  experience_years INTEGER NOT NULL DEFAULT 0,
-  sample_course TEXT,
-  bio TEXT,
   status proposal_status NOT NULL DEFAULT 'PENDING',
-  review_id UUID REFERENCES users(user_id) ON DELETE SET NULL,
+  reviewer_id UUID REFERENCES users(user_id) ON DELETE SET NULL,
   reviewed_at TIMESTAMPTZ,
   rejection_reason TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

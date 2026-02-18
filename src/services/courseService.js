@@ -3,32 +3,76 @@ import { useApiMode } from '../lib/dataMode'
 import { getMockState } from './mockState'
 import { formatPrice, toApiDifficulty, toDisplayDifficulty } from './formatters'
 
+function normalizeLessonsFromApi(course) {
+  if (Array.isArray(course.lessons)) {
+    return course.lessons
+      .map((lesson, index) => ({
+        id: lesson.lessonId || `lesson-${index}`,
+        title: String(lesson.title || '').trim(),
+        content: lesson.content ? String(lesson.content) : '',
+      }))
+      .filter((lesson) => lesson.title)
+  }
+
+  if (Array.isArray(course.syllabus)) {
+    return course.syllabus
+      .map((topic, index) => ({
+        id: `lesson-${index}`,
+        title: String(topic || '').trim(),
+        content: '',
+      }))
+      .filter((lesson) => lesson.title)
+  }
+
+  return []
+}
+
+function normalizeLessonsForPayload(course) {
+  if (Array.isArray(course.lessons)) {
+    return course.lessons
+      .map((lesson) => ({
+        title: String(lesson?.title || '').trim(),
+        content: String(lesson?.content || '').trim(),
+      }))
+      .filter((lesson) => lesson.title || lesson.content)
+  }
+
+  if (Array.isArray(course.syllabus)) {
+    return course.syllabus
+      .map((topic) => ({ title: String(topic || '').trim(), content: '' }))
+      .filter((lesson) => lesson.title)
+  }
+
+  return []
+}
+
 function mapApiCourseToUi(course) {
+  const lessons = normalizeLessonsFromApi(course)
   return {
     id: course.courseId,
     title: course.name,
-    duration: course.durationLabel || 'TBD',
+    category: course.category || '',
     level: toDisplayDifficulty(course.difficulty),
-    sessions: course.sessionCount || 0,
     trainerName: course.trainerName,
-    spots: course.spotLimit || 0,
     price: formatPrice(course.price),
     description: course.description || '',
-    syllabus: course.syllabus || [],
+    lessons,
+    syllabus: lessons.map((lesson) => lesson.title),
     trainerId: course.trainerId,
   }
 }
 
 function mapUiCourseToApi(course) {
+  const lessons = normalizeLessonsForPayload(course)
+  const category = String(course.category || '').trim()
   return {
     name: course.title,
     description: course.description,
+    category: category || null,
     difficulty: toApiDifficulty(course.level),
     price: Number(String(course.price || '0').replace(/[^0-9.]/g, '')),
-    durationLabel: course.duration,
-    sessionCount: Number(course.sessions || 0),
-    spotLimit: Number(course.spots || 0),
-    syllabus: Array.isArray(course.syllabus) ? course.syllabus : [],
+    lessons,
+    syllabus: lessons.map((lesson) => lesson.title),
   }
 }
 
@@ -139,4 +183,23 @@ export async function updateCourse(courseId, coursePayload, { signal } = {}) {
   }
 
   return null
+}
+
+export async function deleteCourse(courseId, { signal } = {}) {
+  if (useApiMode) {
+    await apiRequest(`/courses/${courseId}`, {
+      method: 'DELETE',
+      signal,
+    })
+    return true
+  }
+
+  const { courses } = getMockState()
+  const index = courses.findIndex((course) => course.id === courseId)
+  if (index >= 0) {
+    courses.splice(index, 1)
+    return true
+  }
+
+  throw new Error('Course not found')
 }

@@ -22,10 +22,11 @@ function parsePagination(req) {
 const listCourses = asyncHandler(async (req, res) => {
   const query = req.query.query ? String(req.query.query).trim() : '';
   const trainerId = req.query.trainerId ? String(req.query.trainerId) : null;
+  const effectiveTrainerId = req.query.mine === 'true' ? req.user.userId : trainerId;
   const { limit, offset } = parsePagination(req);
   const { courses, total } = await service.listCourses({
     query,
-    trainerId: req.query.mine === 'true' ? req.user?.userId || null : trainerId,
+    trainerId: effectiveTrainerId,
     limit,
     offset,
   });
@@ -59,10 +60,16 @@ const enrollCourse = asyncHandler(async (req, res) => {
   res.status(201).json({ message: 'Enrollment successful' });
 });
 
+const deleteCourse = asyncHandler(async (req, res) => {
+  await service.deleteCourse(req.params.courseId, req.user);
+  res.status(204).send();
+});
+
 module.exports = {
   listCourses,
   getCourse,
   createCourse,
   updateCourse,
   enrollCourse,
+  deleteCourse,
 };

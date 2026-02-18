@@ -2,11 +2,9 @@ export const courses = [
   {
     id: 'c1',
     title: 'Foundations of Strength',
-    duration: '6 Weeks',
+    category: 'Strength',
     level: 'Intermediate',
-    sessions: 18,
     trainerName: 'Avery Cole',
-    spots: 24,
     price: '$149',
     description:
       'Program focused on progressive overload, movement fundamentals, and accessory stability work.',
@@ -15,11 +13,9 @@ export const courses = [
   {
     id: 'c2',
     title: 'HIIT Accelerator',
-    duration: '4 Weeks',
+    category: 'Conditioning',
     level: 'All Levels',
-    sessions: 12,
     trainerName: 'Maya Hernandez',
-    spots: 30,
     price: '$129',
     description:
       'Interval-based approach combining power, speed, and metabolic finishers to boost conditioning.',
@@ -28,11 +24,9 @@ export const courses = [
   {
     id: 'c3',
     title: 'Mobility Reset',
-    duration: '3 Weeks',
+    category: 'Mobility',
     level: 'Beginner',
-    sessions: 9,
     trainerName: 'Dev Kapoor',
-    spots: 18,
     price: '$89',
     description:
       'Low-impact plan to restore posture, joint health, and breathing mechanics.',
@@ -44,20 +38,23 @@ export const enrollments = [
   {
     id: 'e1',
     courseId: 'c1',
+    courseName: 'Foundations of Strength',
     memberName: 'Jordan Wells',
-    progress: 45,
+    enrolledAt: '2026-01-12T09:00:00.000Z',
   },
   {
     id: 'e2',
     courseId: 'c2',
+    courseName: 'HIIT Accelerator',
     memberName: 'Jordan Wells',
-    progress: 72,
+    enrolledAt: '2026-01-20T14:30:00.000Z',
   },
   {
     id: 'e3',
     courseId: 'c3',
+    courseName: 'Mobility Reset',
     memberName: 'Aida Cooper',
-    progress: 0,
+    enrolledAt: '2026-02-02T16:45:00.000Z',
   },
 ]
 

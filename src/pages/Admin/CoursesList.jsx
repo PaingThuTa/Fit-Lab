@@ -34,13 +34,12 @@ const CoursesList = () => {
       {error ? <p className="mb-3 text-sm text-red-600">{error}</p> : null}
       <table className="w-full text-left text-sm">
         <thead className="text-xs uppercase text-slate-400">
-          <tr>
-            <th className="py-3">Course</th>
-            <th>Trainer</th>
-            <th>Level</th>
-            <th>Spots</th>
-            <th className="text-right">Actions</th>
-          </tr>
+            <tr>
+              <th className="py-3">Course</th>
+              <th>Trainer</th>
+              <th>Level</th>
+              <th className="text-right">Actions</th>
+            </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {courses.map((course) => (
@@ -48,7 +47,6 @@ const CoursesList = () => {
               <td className="py-3 font-medium text-slate-900 dark:text-white">{course.name}</td>
               <td>{course.trainerName}</td>
               <td>{course.difficulty}</td>
-              <td>{course.spotLimit}</td>
               <td className="text-right">
                 <Button size="sm" variant="outline">
                   Audit

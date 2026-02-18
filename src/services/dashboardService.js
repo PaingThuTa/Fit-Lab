@@ -9,7 +9,17 @@ export async function getMemberDashboard({ currentName, currentEmail, signal } =
   }
 
   const state = getMockState()
-  const myEnrollments = state.enrollments.filter((item) => item.memberName === currentName)
+  const coursesById = state.courses.reduce((acc, course) => {
+    acc[course.id] = course
+    return acc
+  }, {})
+  const myEnrollments = state.enrollments
+    .filter((item) => item.memberName === currentName)
+    .map((item) => ({
+      courseId: item.courseId,
+      courseName: item.courseName || coursesById[item.courseId]?.title || '',
+      enrolledAt: item.enrolledAt || null,
+    }))
   const proposal = state.trainerProposals.find((item) => item.email?.toLowerCase() === currentEmail?.toLowerCase())
 
   return {
@@ -37,7 +47,6 @@ export async function getTrainerDashboard({ trainerName, signal } = {}) {
     courses: courses.map((course) => ({
       courseId: course.id,
       name: course.title,
-      sessionCount: course.sessions,
       difficulty: course.level,
       enrolledCount: state.enrollments.filter((enrollment) => enrollment.courseId === course.id).length,
     })),

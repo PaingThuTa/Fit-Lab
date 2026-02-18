@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
@@ -7,12 +7,25 @@ import { useAuthStore } from '../../store/useAuthStore'
 import { getMemberDashboard } from '../../services/dashboardService'
 import { listCoursesPage } from '../../services/courseService'
 import { getMyProposal } from '../../services/proposalService'
+import { enrollInCourse } from '../../services/enrollmentService'
 import { queryKeys } from '../../lib/queryKeys'
+import { formatShortDate } from '../../services/formatters'
 
 const Home = () => {
   const user = useAuthStore((state) => state.user)
   const currentName = user?.name ?? 'Jordan Wells'
   const queryClient = useQueryClient()
+
+  const enrollMutation = useMutation({
+    mutationFn: (courseId) => enrollInCourse(courseId, { memberName: currentName }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.courses({}) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.memberDashboard }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.myEnrollments }),
+      ])
+    },
+  })
 
   const dashboardQuery = useQuery({
     queryKey: queryKeys.memberDashboard,
@@ -57,28 +70,34 @@ const Home = () => {
   const fallbackCourses = (dashboard.courses || []).map((course) => ({
     id: course.courseId,
     title: course.name,
-    duration: course.durationLabel || 'TBD',
+    category: course.category || '',
     level: course.difficulty || 'BEGINNER',
-    sessions: course.sessionCount || 0,
     trainerName: course.trainerName,
-    spots: course.spotLimit || 0,
     price: `$${Number(course.price || 0).toFixed(0)}`,
     description: course.description || '',
     syllabus: [],
   }))
   const courses = coursesQuery.data?.courses?.length ? coursesQuery.data.courses : fallbackCourses
   const myEnrollments = (dashboard.myEnrollments || []).map((enrollment) => ({
-    id: `${enrollment.courseId}-${enrollment.progressPercent}`,
+    id: `${enrollment.courseId}-${enrollment.enrolledAt || 'na'}`,
     courseId: enrollment.courseId,
-    progress: enrollment.progressPercent || 0,
+    courseName: enrollment.courseName || '',
+    enrolledAt: enrollment.enrolledAt || null,
   }))
   const myTrainerApplication = proposalQuery.data || null
   const loading = dashboardQuery.isPending || coursesQuery.isPending || proposalQuery.isPending
-  const error =
+  const queryError =
     dashboardQuery.error?.message ||
     coursesQuery.error?.message ||
     proposalQuery.error?.message ||
     ''
+  const error = enrollMutation.error?.message || queryError
+  const notice = enrollMutation.isSuccess ? 'Enrollment successful.' : ''
+
+  const handleEnroll = (courseId) => {
+    enrollMutation.reset()
+    enrollMutation.mutate(courseId)
+  }
 
   return (
     <div className="grid gap-8 lg:grid-cols-[280px,1fr]">
@@ -142,30 +161,35 @@ const Home = () => {
           </div>
           <div className="grid gap-6 md:grid-cols-2">
             {courses.map((course) => (
-              <Card key={course.id} title={course.title} description={`${course.level} • ${course.duration}`}>
+              <Card key={course.id} title={course.title} description={`${course.level} • ${course.category || 'Uncategorized'}`}>
                 <p className="text-sm text-slate-600 dark:text-slate-300">{course.description}</p>
                 <div className="mt-4 flex items-center justify-between text-sm">
-                  <span>{course.sessions} Lessons</span>
                   <span className="font-semibold text-primary-600">{course.price}</span>
                 </div>
                 <div className="mt-5 flex items-center gap-3">
                   <Button as={Link} to={`/member/courses/${course.id}`} size="sm">
                     View details
                   </Button>
-                  <Button variant="outline" size="sm">
-                    Enroll
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={enrollMutation.isPending}
+                    onClick={() => handleEnroll(course.id)}
+                  >
+                    {enrollMutation.isPending ? 'Enrolling...' : 'Enroll'}
                   </Button>
                 </div>
               </Card>
             ))}
           </div>
         </section>
+        {notice ? <p className="text-sm text-emerald-600">{notice}</p> : null}
 
         <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">My enrolled courses</h2>
-              <p className="text-sm text-slate-500">Track progress and jump back into the next lesson.</p>
+              <p className="text-sm text-slate-500">Review enrolled dates and jump back into the next lesson.</p>
             </div>
             <Button as={Link} to="/member/my-courses" variant="outline">
               Open enrollment list
@@ -182,20 +206,19 @@ const Home = () => {
                 return (
                   <Card
                     key={item.id}
-                    title={course?.title ?? 'Course removed'}
-                    description={`Progress ${item.progress}%`}
+                    title={course?.title || item.courseName || 'Course removed'}
+                    description={`Enrolled ${formatShortDate(item.enrolledAt)}`}
                   >
-                    <div className="mt-4 h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800">
-                      <div
-                        className="h-full rounded-full bg-primary-500"
-                        style={{ width: `${item.progress}%` }}
-                      />
-                    </div>
                     <div className="mt-4 flex items-center justify-between text-sm">
-                      <span>{course?.sessions ?? 0} Lessons</span>
-                      <Button size="sm" variant="outline">
-                        Resume
-                      </Button>
+                      {item.courseId ? (
+                        <Button as={Link} to={`/member/courses/${item.courseId}`} size="sm" variant="outline">
+                          Resume
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" disabled>
+                          Course unavailable
+                        </Button>
+                      )}
                     </div>
                   </Card>
                 )
