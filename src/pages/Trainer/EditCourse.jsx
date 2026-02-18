@@ -38,13 +38,20 @@ const EditCourse = () => {
   const initialForm = useMemo(() => {
     const course = courseQuery.data
     if (!course) return null
+    const lessons = Array.isArray(course.lessons) && course.lessons.length
+      ? course.lessons.map((lesson) => ({
+          title: lesson.title || '',
+          content: lesson.content || '',
+        }))
+      : (course.syllabus || []).map((topic) => ({ title: topic, content: '' }))
+
     return {
       title: course.title,
       duration: course.duration,
       level: course.level,
       price: course.price,
       description: course.description || '',
-      syllabus: (course.syllabus || []).join('\n'),
+      lessons: lessons.length ? lessons : [{ title: '', content: '' }],
     }
   }, [courseQuery.data])
   const currentForm = form || initialForm
@@ -54,22 +61,75 @@ const EditCourse = () => {
     setForm((prev) => ({ ...(prev || initialForm), [name]: value }))
   }
 
+  const handleLessonChange = (index, field, value) => {
+    setForm((prev) => {
+      const next = prev || initialForm
+      if (!next) return prev
+
+      return {
+        ...next,
+        lessons: next.lessons.map((lesson, lessonIndex) =>
+          lessonIndex === index ? { ...lesson, [field]: value } : lesson
+        ),
+      }
+    })
+  }
+
+  const handleAddLesson = () => {
+    setForm((prev) => {
+      const next = prev || initialForm
+      if (!next) return prev
+      return {
+        ...next,
+        lessons: [...next.lessons, { title: '', content: '' }],
+      }
+    })
+  }
+
+  const handleRemoveLesson = (index) => {
+    setForm((prev) => {
+      const next = prev || initialForm
+      if (!next) return prev
+
+      if (next.lessons.length <= 1) {
+        return {
+          ...next,
+          lessons: [{ title: '', content: '' }],
+        }
+      }
+
+      return {
+        ...next,
+        lessons: next.lessons.filter((_, lessonIndex) => lessonIndex !== index),
+      }
+    })
+  }
+
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
 
     if (!currentForm) return
     try {
+      const lessons = currentForm.lessons
+        .map((lesson) => ({
+          title: lesson.title.trim(),
+          content: lesson.content.trim(),
+        }))
+        .filter((lesson) => lesson.title || lesson.content)
+
+      if (lessons.some((lesson) => !lesson.title)) {
+        setError('Each lesson needs a title.')
+        return
+      }
+
       await updateCourseMutation.mutateAsync({
         title: currentForm.title,
         duration: currentForm.duration,
         level: currentForm.level,
         price: currentForm.price,
         description: currentForm.description,
-        syllabus: currentForm.syllabus
-          .split('\n')
-          .map((item) => item.trim())
-          .filter(Boolean),
+        lessons,
       })
     } catch (submitError) {
       setError(submitError.message || 'Unable to update course')
@@ -111,15 +171,37 @@ const EditCourse = () => {
             className="mt-2 min-h-[160px] w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
           />
         </label>
-        <label className="md:col-span-2">
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Syllabus topics</span>
-          <textarea
-            name="syllabus"
-            value={currentForm.syllabus}
-            onChange={handleChange}
-            className="mt-2 min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-          />
-        </label>
+        <div className="md:col-span-2 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Lessons</span>
+            <Button type="button" variant="outline" size="sm" onClick={handleAddLesson}>
+              Add lesson
+            </Button>
+          </div>
+          {currentForm.lessons.map((lesson, index) => (
+            <div key={`lesson-${index}`} className="space-y-2 rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs uppercase text-slate-400">Lesson {index + 1}</p>
+                <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveLesson(index)}>
+                  Remove
+                </Button>
+              </div>
+              <Input
+                label="Lesson title"
+                value={lesson.title}
+                onChange={(event) => handleLessonChange(index, 'title', event.target.value)}
+              />
+              <label>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Lesson content</span>
+                <textarea
+                  value={lesson.content}
+                  onChange={(event) => handleLessonChange(index, 'content', event.target.value)}
+                  className="mt-2 min-h-[100px] w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+            </div>
+          ))}
+        </div>
         {error ? <p className="md:col-span-2 text-sm text-red-600">{error}</p> : null}
         <div className="md:col-span-2 flex gap-3">
           <Button type="submit">{updateCourseMutation.isPending ? 'Saving...' : 'Save changes'}</Button>

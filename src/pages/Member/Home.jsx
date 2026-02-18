@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
@@ -7,12 +7,24 @@ import { useAuthStore } from '../../store/useAuthStore'
 import { getMemberDashboard } from '../../services/dashboardService'
 import { listCoursesPage } from '../../services/courseService'
 import { getMyProposal } from '../../services/proposalService'
+import { enrollInCourse } from '../../services/enrollmentService'
 import { queryKeys } from '../../lib/queryKeys'
 
 const Home = () => {
   const user = useAuthStore((state) => state.user)
   const currentName = user?.name ?? 'Jordan Wells'
   const queryClient = useQueryClient()
+
+  const enrollMutation = useMutation({
+    mutationFn: (courseId) => enrollInCourse(courseId, { memberName: currentName }),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.courses({}) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.memberDashboard }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.myEnrollments }),
+      ])
+    },
+  })
 
   const dashboardQuery = useQuery({
     queryKey: queryKeys.memberDashboard,
@@ -72,11 +84,18 @@ const Home = () => {
   }))
   const myTrainerApplication = proposalQuery.data || null
   const loading = dashboardQuery.isPending || coursesQuery.isPending || proposalQuery.isPending
-  const error =
+  const queryError =
     dashboardQuery.error?.message ||
     coursesQuery.error?.message ||
     proposalQuery.error?.message ||
     ''
+  const error = enrollMutation.error?.message || queryError
+  const notice = enrollMutation.isSuccess ? 'Enrollment successful.' : ''
+
+  const handleEnroll = (courseId) => {
+    enrollMutation.reset()
+    enrollMutation.mutate(courseId)
+  }
 
   return (
     <div className="grid gap-8 lg:grid-cols-[280px,1fr]">
@@ -149,14 +168,20 @@ const Home = () => {
                   <Button as={Link} to={`/member/courses/${course.id}`} size="sm">
                     View details
                   </Button>
-                  <Button variant="outline" size="sm">
-                    Enroll
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={enrollMutation.isPending}
+                    onClick={() => handleEnroll(course.id)}
+                  >
+                    {enrollMutation.isPending ? 'Enrolling...' : 'Enroll'}
                   </Button>
                 </div>
               </Card>
             ))}
           </div>
         </section>
+        {notice ? <p className="text-sm text-emerald-600">{notice}</p> : null}
 
         <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">

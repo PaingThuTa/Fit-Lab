@@ -18,7 +18,7 @@ const CreateCourse = () => {
     level: '',
     price: '',
     description: '',
-    syllabus: '',
+    lessons: [{ title: '', content: '' }],
   })
   const [error, setError] = useState('')
 
@@ -38,21 +38,59 @@ const CreateCourse = () => {
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
+  const handleLessonChange = (index, field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      lessons: prev.lessons.map((lesson, lessonIndex) =>
+        lessonIndex === index ? { ...lesson, [field]: value } : lesson
+      ),
+    }))
+  }
+
+  const handleAddLesson = () => {
+    setForm((prev) => ({
+      ...prev,
+      lessons: [...prev.lessons, { title: '', content: '' }],
+    }))
+  }
+
+  const handleRemoveLesson = (index) => {
+    setForm((prev) => {
+      if (prev.lessons.length <= 1) {
+        return { ...prev, lessons: [{ title: '', content: '' }] }
+      }
+
+      return {
+        ...prev,
+        lessons: prev.lessons.filter((_, lessonIndex) => lessonIndex !== index),
+      }
+    })
+  }
+
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError('')
 
     try {
+      const lessons = form.lessons
+        .map((lesson) => ({
+          title: lesson.title.trim(),
+          content: lesson.content.trim(),
+        }))
+        .filter((lesson) => lesson.title || lesson.content)
+
+      if (lessons.some((lesson) => !lesson.title)) {
+        setError('Each lesson needs a title.')
+        return
+      }
+
       await createCourseMutation.mutateAsync({
         title: form.title,
         duration: form.duration,
         level: form.level,
         price: form.price,
         description: form.description,
-        syllabus: form.syllabus
-          .split('\n')
-          .map((item) => item.trim())
-          .filter(Boolean),
+        lessons,
       })
     } catch (submitError) {
       setError(submitError.message || 'Unable to create course')
@@ -91,16 +129,39 @@ const CreateCourse = () => {
             placeholder="Describe the course experience..."
           />
         </label>
-        <label className="md:col-span-2">
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Syllabus topics (one per line)</span>
-          <textarea
-            name="syllabus"
-            value={form.syllabus}
-            onChange={handleChange}
-            className="mt-2 min-h-[120px] w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-            placeholder="Movement assessment&#10;Tempo lifting for strength&#10;Accessory stability toolkit"
-          />
-        </label>
+        <div className="md:col-span-2 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Lessons</span>
+            <Button type="button" variant="outline" size="sm" onClick={handleAddLesson}>
+              Add lesson
+            </Button>
+          </div>
+          {form.lessons.map((lesson, index) => (
+            <div key={`lesson-${index}`} className="space-y-2 rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs uppercase text-slate-400">Lesson {index + 1}</p>
+                <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveLesson(index)}>
+                  Remove
+                </Button>
+              </div>
+              <Input
+                label="Lesson title"
+                value={lesson.title}
+                onChange={(event) => handleLessonChange(index, 'title', event.target.value)}
+                placeholder="Movement assessment"
+              />
+              <label>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Lesson content</span>
+                <textarea
+                  value={lesson.content}
+                  onChange={(event) => handleLessonChange(index, 'content', event.target.value)}
+                  className="mt-2 min-h-[100px] w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  placeholder="Notes, coaching points, and assignments for this lesson..."
+                />
+              </label>
+            </div>
+          ))}
+        </div>
         {error ? <p className="md:col-span-2 text-sm text-red-600">{error}</p> : null}
         <div className="md:col-span-2 flex gap-3">
           <Button type="submit">{createCourseMutation.isPending ? 'Saving...' : 'Create course'}</Button>

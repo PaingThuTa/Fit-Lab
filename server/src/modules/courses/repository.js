@@ -152,18 +152,19 @@ async function updateCourse(client, courseId, updates) {
   await client.query(`UPDATE courses SET ${setClauses.join(', ')} WHERE course_id = $${values.length}`, values);
 }
 
-async function replaceCourseLessons(client, courseId, syllabus) {
+async function replaceCourseLessons(client, courseId, lessons) {
   await client.query('DELETE FROM lessons WHERE course_id = $1', [courseId]);
 
-  if (!Array.isArray(syllabus) || syllabus.length === 0) {
+  if (!Array.isArray(lessons) || lessons.length === 0) {
     return;
   }
 
-  for (let index = 0; index < syllabus.length; index += 1) {
+  for (let index = 0; index < lessons.length; index += 1) {
+    const lesson = lessons[index];
     await client.query(
-      `INSERT INTO lessons (course_id, title)
-       VALUES ($1, $2)`,
-      [courseId, syllabus[index]]
+      `INSERT INTO lessons (course_id, title, content)
+       VALUES ($1, $2, $3)`,
+      [courseId, lesson.title, lesson.content || null]
     );
   }
 }
@@ -179,6 +180,11 @@ async function createEnrollment({ memberId, courseId }) {
   return rowCount > 0;
 }
 
+async function deleteCourse(courseId) {
+  const { rowCount } = await pool.query('DELETE FROM courses WHERE course_id = $1', [courseId]);
+  return rowCount > 0;
+}
+
 module.exports = {
   listCourses,
   findCourseById,
@@ -187,4 +193,5 @@ module.exports = {
   updateCourse,
   replaceCourseLessons,
   createEnrollment,
+  deleteCourse,
 };
