@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
@@ -7,25 +7,12 @@ import { useAuthStore } from '../../store/useAuthStore'
 import { getMemberDashboard } from '../../services/dashboardService'
 import { listCoursesPage } from '../../services/courseService'
 import { getMyProposal } from '../../services/proposalService'
-import { enrollInCourse } from '../../services/enrollmentService'
 import { queryKeys } from '../../lib/queryKeys'
-import { formatShortDate } from '../../services/formatters'
 
 const Home = () => {
   const user = useAuthStore((state) => state.user)
   const currentName = user?.name ?? 'Jordan Wells'
   const queryClient = useQueryClient()
-
-  const enrollMutation = useMutation({
-    mutationFn: (courseId) => enrollInCourse(courseId, { memberName: currentName }),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.courses({}) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.memberDashboard }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.myEnrollments }),
-      ])
-    },
-  })
 
   const dashboardQuery = useQuery({
     queryKey: queryKeys.memberDashboard,
@@ -84,6 +71,8 @@ const Home = () => {
     courseName: enrollment.courseName || '',
     enrolledAt: enrollment.enrolledAt || null,
   }))
+  const enrolledCourseIds = new Set(myEnrollments.map((item) => String(item.courseId)))
+  const availableCourses = courses.filter((course) => !enrolledCourseIds.has(String(course.id)))
   const myTrainerApplication = proposalQuery.data || null
   const loading = dashboardQuery.isPending || coursesQuery.isPending || proposalQuery.isPending
   const queryError =
@@ -91,13 +80,7 @@ const Home = () => {
     coursesQuery.error?.message ||
     proposalQuery.error?.message ||
     ''
-  const error = enrollMutation.error?.message || queryError
-  const notice = enrollMutation.isSuccess ? 'Enrollment successful.' : ''
-
-  const handleEnroll = (courseId) => {
-    enrollMutation.reset()
-    enrollMutation.mutate(courseId)
-  }
+  const error = queryError
 
   return (
     <div className="grid gap-8 lg:grid-cols-[280px,1fr]">
@@ -126,7 +109,7 @@ const Home = () => {
             <Button as={Link} to="/member/courses" variant="outline" className="w-full justify-start">
               Browse courses
             </Button>
-            <Button as={Link} to="/member/my-courses" variant="outline" className="w-full justify-start">
+            <Button as={Link} to="/member/course" variant="outline" className="w-full justify-start">
               View my enrollments
             </Button>
             <Button as={Link} to="/member/messages" variant="outline" className="w-full justify-start">
@@ -160,7 +143,7 @@ const Home = () => {
             </Button>
           </div>
           <div className="grid gap-6 md:grid-cols-2">
-            {courses.map((course) => (
+            {availableCourses.map((course) => (
               <Card key={course.id} title={course.title} description={`${course.level} • ${course.category || 'Uncategorized'}`}>
                 <p className="text-sm text-slate-600 dark:text-slate-300">{course.description}</p>
                 <div className="mt-4 flex items-center justify-between text-sm">
@@ -170,61 +153,18 @@ const Home = () => {
                   <Button as={Link} to={`/member/courses/${course.id}`} size="sm">
                     View details
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={enrollMutation.isPending}
-                    onClick={() => handleEnroll(course.id)}
-                  >
-                    {enrollMutation.isPending ? 'Enrolling...' : 'Enroll'}
+                  <Button as={Link} to={`/member/courses/${course.id}?intent=enroll`} variant="outline" size="sm">
+                    Enroll
                   </Button>
                 </div>
               </Card>
             ))}
+            {!loading && availableCourses.length === 0 ? (
+              <Card>
+                <p className="text-sm text-slate-500">You are already enrolled in all listed courses. Use View my enrollments to continue.</p>
+              </Card>
+            ) : null}
           </div>
-        </section>
-        {notice ? <p className="text-sm text-emerald-600">{notice}</p> : null}
-
-        <section className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-semibold text-slate-900 dark:text-white">My enrolled courses</h2>
-              <p className="text-sm text-slate-500">Review enrolled dates and jump back into the next lesson.</p>
-            </div>
-            <Button as={Link} to="/member/my-courses" variant="outline">
-              Open enrollment list
-            </Button>
-          </div>
-          {!loading && myEnrollments.length === 0 ? (
-            <Card>
-              <p className="text-sm text-slate-500">No enrollments yet. Start with a course to see it here.</p>
-            </Card>
-          ) : !loading ? (
-            <div className="grid gap-6 md:grid-cols-2">
-              {myEnrollments.map((item) => {
-                const course = courses.find((courseItem) => courseItem.id === item.courseId)
-                return (
-                  <Card
-                    key={item.id}
-                    title={course?.title || item.courseName || 'Course removed'}
-                    description={`Enrolled ${formatShortDate(item.enrolledAt)}`}
-                  >
-                    <div className="mt-4 flex items-center justify-between text-sm">
-                      {item.courseId ? (
-                        <Button as={Link} to={`/member/courses/${item.courseId}`} size="sm" variant="outline">
-                          Resume
-                        </Button>
-                      ) : (
-                        <Button size="sm" variant="outline" disabled>
-                          Course unavailable
-                        </Button>
-                      )}
-                    </div>
-                  </Card>
-                )
-              })}
-            </div>
-          ) : null}
         </section>
       </div>
     </div>

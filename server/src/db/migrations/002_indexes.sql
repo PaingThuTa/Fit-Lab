@@ -7,3 +7,4 @@ CREATE INDEX IF NOT EXISTS idx_messages_receiver_sender_sent_at ON messages(rece
 CREATE INDEX IF NOT EXISTS idx_messages_course_id ON messages(course_id);
 CREATE INDEX IF NOT EXISTS idx_trainer_proposals_status ON trainer_proposals(status);
 CREATE INDEX IF NOT EXISTS idx_trainer_proposals_user_id ON trainer_proposals(user_id);
+CREATE INDEX IF NOT EXISTS idx_trainer_proposals_reviewer_id ON trainer_proposals(reviewer_id);

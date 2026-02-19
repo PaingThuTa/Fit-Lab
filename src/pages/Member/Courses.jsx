@@ -1,20 +1,19 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
 import { listCoursesPage } from '../../services/courseService'
-import { enrollInCourse } from '../../services/enrollmentService'
+import { getMyEnrollments } from '../../services/enrollmentService'
 import { useAuthStore } from '../../store/useAuthStore'
 import { queryKeys } from '../../lib/queryKeys'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 
 const Courses = () => {
   const [query, setQuery] = useState('')
-  const [notice, setNotice] = useState('')
   const user = useAuthStore((state) => state.user)
-  const queryClient = useQueryClient()
+  const currentName = user?.name || 'Jordan Wells'
   const debouncedQuery = useDebouncedValue(query, 250)
 
   const coursesQuery = useQuery({
@@ -29,27 +28,15 @@ const Courses = () => {
     staleTime: 60 * 1000,
   })
 
-  const enrollMutation = useMutation({
-    mutationFn: (courseId) => enrollInCourse(courseId, { memberName: user?.name || 'Jordan Wells' }),
-    onSuccess: async () => {
-      setNotice('Enrollment successful.')
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.courses({}) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.memberDashboard }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.myEnrollments }),
-      ])
-    },
+  const myEnrollmentsQuery = useQuery({
+    queryKey: queryKeys.myEnrollments,
+    queryFn: ({ signal }) => getMyEnrollments({ memberName: currentName, signal }),
   })
 
   const courses = coursesQuery.data?.courses || []
+  const enrolledCourseIds = new Set((myEnrollmentsQuery.data || []).map((item) => String(item.courseId)))
   const total = coursesQuery.data?.page?.total ?? courses.length
-
-  const handleEnroll = (courseId) => {
-    setNotice('')
-    enrollMutation.reset()
-    enrollMutation.mutate(courseId)
-  }
-  const error = enrollMutation.error?.message || coursesQuery.error?.message || ''
+  const error = coursesQuery.error?.message || myEnrollmentsQuery.error?.message || ''
 
   return (
     <div className="space-y-6">
@@ -68,7 +55,6 @@ const Courses = () => {
         </div>
       </div>
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
-      {notice ? <p className="text-sm text-emerald-600">{notice}</p> : null}
       <p className="text-xs text-slate-400">{total} courses</p>
       {coursesQuery.isPending ? (
         <div className="grid gap-6 md:grid-cols-2">
@@ -90,32 +76,36 @@ const Courses = () => {
         </Card>
       ) : null}
       <div className="grid gap-6 md:grid-cols-2">
-        {courses.map((course) => (
-          <Card
-            key={course.id}
-            title={course.title}
-            description={`${course.level} • ${course.category || 'Uncategorized'}`}
-            action={<span className="text-sm font-semibold text-primary-600">{course.price}</span>}
-          >
-            <p className="text-sm text-slate-600 dark:text-slate-300">{course.description}</p>
-            <p className="mt-3 text-xs uppercase tracking-wider text-slate-400">Trainer • {course.trainerName}</p>
-            <div className="mt-4 flex items-center justify-end text-sm text-slate-500">
-              <div className="flex gap-2">
-                <Button as={Link} to={`/member/courses/${course.id}`} size="sm">
-                  Details
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={enrollMutation.isPending}
-                  onClick={() => handleEnroll(course.id)}
-                >
-                  Enroll
-                </Button>
+        {courses.map((course) => {
+          const isEnrolled = enrolledCourseIds.has(String(course.id))
+          return (
+            <Card
+              key={course.id}
+              title={course.title}
+              description={`${course.level} • ${course.category || 'Uncategorized'}`}
+              action={<span className="text-sm font-semibold text-primary-600">{course.price}</span>}
+            >
+              <p className="text-sm text-slate-600 dark:text-slate-300">{course.description}</p>
+              <p className="mt-3 text-xs uppercase tracking-wider text-slate-400">Trainer • {course.trainerName}</p>
+              <div className="mt-4 flex items-center justify-end text-sm text-slate-500">
+                <div className="flex gap-2">
+                  <Button as={Link} to={`/member/courses/${course.id}`} size="sm">
+                    Details
+                  </Button>
+                  {isEnrolled ? (
+                    <Button as={Link} to={`/member/courses/${course.id}`} variant="outline" size="sm">
+                      Resume
+                    </Button>
+                  ) : (
+                    <Button as={Link} to={`/member/courses/${course.id}?intent=enroll`} variant="outline" size="sm">
+                      Enroll
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          )
+        })}
         {courses.length === 0 && !coursesQuery.isPending && (
           <Card>
             <p className="text-sm text-slate-500">No courses match your search yet.</p>
