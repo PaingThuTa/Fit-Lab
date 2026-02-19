@@ -1,18 +1,47 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useSearchParams } from 'react-router-dom'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import { getCourseDetail } from '../../services/courseService'
-import { enrollInCourse } from '../../services/enrollmentService'
+import { enrollInCourse, getMyEnrollments } from '../../services/enrollmentService'
 import { useAuthStore } from '../../store/useAuthStore'
+import { queryKeys } from '../../lib/queryKeys'
 
 const CourseDetail = () => {
   const { courseId } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const user = useAuthStore((state) => state.user)
+  const currentName = user?.name || 'Jordan Wells'
+  const queryClient = useQueryClient()
   const [course, setCourse] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [showEnrollConfirm, setShowEnrollConfirm] = useState(false)
+
+  const shouldPromptEnroll = searchParams.get('intent') === 'enroll'
+
+  const myEnrollmentsQuery = useQuery({
+    queryKey: queryKeys.myEnrollments,
+    queryFn: ({ signal }) => getMyEnrollments({ memberName: currentName, signal }),
+  })
+
+  const enrollMutation = useMutation({
+    mutationFn: () => enrollInCourse(courseId, { memberName: currentName }),
+    onSuccess: async () => {
+      setNotice('Enrollment successful.')
+      setShowEnrollConfirm(false)
+      setSearchParams({}, { replace: true })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.myEnrollments }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.memberDashboard }),
+      ])
+    },
+    onError: (enrollError) => {
+      setError(enrollError.message || 'Unable to enroll')
+    },
+  })
 
   useEffect(() => {
     let mounted = true
@@ -45,13 +74,22 @@ const CourseDetail = () => {
   const handleEnroll = async () => {
     setError('')
     setNotice('')
-    try {
-      await enrollInCourse(courseId, { memberName: user?.name || 'Jordan Wells' })
-      setNotice('Enrollment successful.')
-    } catch (enrollError) {
-      setError(enrollError.message || 'Unable to enroll')
-    }
+    enrollMutation.mutate()
   }
+
+  const enrolledCourseIds = new Set((myEnrollmentsQuery.data || []).map((item) => String(item.courseId)))
+  const isEnrolled = enrolledCourseIds.has(String(courseId))
+  const queryError = myEnrollmentsQuery.error?.message || ''
+  const displayError = error || queryError
+
+  useEffect(() => {
+    if (!isEnrolled && shouldPromptEnroll) {
+      setShowEnrollConfirm(true)
+      return
+    }
+
+    setShowEnrollConfirm(false)
+  }, [isEnrolled, shouldPromptEnroll])
 
   if (loading) {
     return (
@@ -94,16 +132,45 @@ const CourseDetail = () => {
             {lessons.map((lesson, index) => (
               <li key={lesson.id || `${lesson.title}-${index}`}>
                 <p className="font-medium text-slate-700 dark:text-slate-200">{lesson.title}</p>
-                {lesson.content ? <p className="text-slate-500 dark:text-slate-400">{lesson.content}</p> : null}
+                {isEnrolled && lesson.content ? <p className="text-slate-500 dark:text-slate-400">{lesson.content}</p> : null}
               </li>
             ))}
           </ul>
+          {!isEnrolled ? (
+            <p className="mt-3 text-xs text-slate-500">
+              Enroll to unlock full lesson content.
+            </p>
+          ) : null}
         </div>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Button onClick={handleEnroll}>Enroll now</Button>
-          <Button as={Link} to="/member/messages" variant="outline">Message trainer</Button>
-        </div>
-        {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+        {!isEnrolled ? (
+          showEnrollConfirm ? (
+            <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                Confirm enrollment for this course?
+              </p>
+              <div className="mt-3 flex flex-wrap gap-3">
+                <Button onClick={handleEnroll} disabled={enrollMutation.isPending}>
+                  {enrollMutation.isPending ? 'Enrolling...' : 'Confirm enroll'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowEnrollConfirm(false)
+                    setSearchParams({}, { replace: true })
+                  }}
+                >
+                  Not now
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button onClick={() => setShowEnrollConfirm(true)}>Enroll now</Button>
+              <Button as={Link} to="/member/messages" variant="outline">Message trainer</Button>
+            </div>
+          )
+        ) : null}
+        {displayError ? <p className="mt-3 text-sm text-red-600">{displayError}</p> : null}
         {notice ? <p className="mt-3 text-sm text-emerald-600">{notice}</p> : null}
       </Card>
     </div>

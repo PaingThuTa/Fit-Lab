@@ -110,9 +110,10 @@ const router = createBrowserRouter([
         element: <ProtectedLayout allowedRoles={['member']} />,
         children: [
           { index: true, element: <MemberHome /> },
+          { path: 'course', element: <MyCourses /> },
           { path: 'courses', element: <Courses /> },
           { path: 'courses/:courseId', element: <CourseDetail /> },
-          { path: 'my-courses', element: <MyCourses /> },
+          { path: 'my-courses', element: <Navigate to="/member/course" replace /> },
           { path: 'profile', element: <Profile /> },
           { path: 'messages', element: <MemberMessages /> },
         ],
