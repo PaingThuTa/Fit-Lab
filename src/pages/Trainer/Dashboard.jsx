@@ -47,7 +47,7 @@ const TrainerDashboard = () => {
   const error = dashboardQuery.error?.message || ''
 
   const metrics = [
-    { label: 'Live courses', value: dashboard.liveCourses, trend: 'Create or edit cohorts' },
+    { label: 'Live courses', value: dashboard.liveCourses, trend: 'Create or edit courses' },
     { label: 'Enrollments', value: dashboard.enrollments, trend: 'Track member enrollment status' },
     { label: 'Member messages', value: dashboard.memberMessages, trend: 'Respond to DMs' },
   ]
@@ -85,7 +85,7 @@ const TrainerDashboard = () => {
           ))}
         </div>
       ) : null}
-      <Card title="Courses" description="See enrollments per cohort">
+      <Card title="Courses" description="See enrollments per course">
         <div className="space-y-4">
           {dashboard.courses.map((course) => (
             <div key={course.courseId} className="flex flex-wrap items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800">

@@ -43,7 +43,7 @@ const Courses = () => {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">Courses</h1>
-          <p className="text-sm text-slate-500">Mix live cohorts with on-demand series.</p>
+          <p className="text-sm text-slate-500">Mix live courses with on-demand series.</p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[280px]">
           <Input
