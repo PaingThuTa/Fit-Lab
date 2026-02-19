@@ -25,9 +25,9 @@ const Navbar = () => {
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-100 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <Link to="/" className="text-lg font-semibold text-slate-900 dark:text-white">
+    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/75">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3.5 md:px-6">
+        <Link to="/" className="text-lg font-semibold tracking-tight text-slate-900 transition-opacity hover:opacity-90 dark:text-white">
           Fit-Lab
         </Link>
         <div className="flex flex-wrap items-center justify-end gap-3 md:gap-4">
@@ -38,7 +38,7 @@ const Navbar = () => {
                 {editingName ? (
                   <div className="flex flex-wrap items-center gap-2">
                     <input
-                      className="w-40 rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                      className="field-control w-40 px-3 py-1.5"
                       value={draftName}
                       onChange={(e) => setDraftName(e.target.value)}
                       placeholder="Enter your name"
@@ -61,7 +61,7 @@ const Navbar = () => {
                         setDraftName(user.name)
                         setEditingName(true)
                       }}
-                      className="text-xs font-medium text-primary-600 underline-offset-2 hover:underline dark:text-primary-300"
+                      className="text-xs font-medium text-primary-600 transition hover:text-primary-700 hover:underline dark:text-primary-300 dark:hover:text-primary-200"
                     >
                       Edit name
                     </button>

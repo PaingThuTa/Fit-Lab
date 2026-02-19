@@ -1,4 +1,4 @@
-import { apiRequest } from '../lib/apiClient'
+import { apiRequest, apiUpload } from '../lib/apiClient'
 import { useApiMode } from '../lib/dataMode'
 import { getMockState } from './mockState'
 import { formatPrice, toApiDifficulty, toDisplayDifficulty } from './formatters'
@@ -56,6 +56,7 @@ function mapApiCourseToUi(course) {
     trainerName: course.trainerName,
     price: formatPrice(course.price),
     description: course.description || '',
+    thumbnailUrl: course.thumbnailUrl || null,
     lessons,
     syllabus: lessons.map((lesson) => lesson.title),
     trainerId: course.trainerId,
@@ -71,6 +72,7 @@ function mapUiCourseToApi(course) {
     category: category || null,
     difficulty: toApiDifficulty(course.level),
     price: Number(String(course.price || '0').replace(/[^0-9.]/g, '')),
+    thumbnailUrl: course.thumbnailUrl || null,
     lessons,
     syllabus: lessons.map((lesson) => lesson.title),
   }
@@ -202,4 +204,9 @@ export async function deleteCourse(courseId, { signal } = {}) {
   }
 
   throw new Error('Course not found')
+}
+
+export async function uploadThumbnail(file, { signal } = {}) {
+  const result = await apiUpload('/upload/image', file, { signal })
+  return result.url
 }

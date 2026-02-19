@@ -30,14 +30,24 @@ const CoursesList = () => {
 
   return (
     <Card title="Courses" description="All programs on the platform">
-      {error ? <p className="mb-3 text-sm text-red-600">{error}</p> : null}
-      <table className="w-full text-left text-sm">
+      {error ? <p className="mb-3 status-error">{error}</p> : null}
+      <div className="space-y-3 md:hidden">
+        {courses.map((course) => (
+          <div key={course.courseId} className="mobile-list-row">
+            <p className="font-semibold text-slate-900 dark:text-white">{course.name}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">Trainer: {course.trainerName}</p>
+            <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">{course.difficulty}</p>
+          </div>
+        ))}
+      </div>
+
+      <table className="hidden w-full text-left text-sm md:table">
         <thead className="text-xs uppercase text-slate-400">
-            <tr>
-              <th className="py-3">Course</th>
-              <th>Trainer</th>
-              <th>Level</th>
-            </tr>
+          <tr>
+            <th className="py-3">Course</th>
+            <th>Trainer</th>
+            <th>Level</th>
+          </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {courses.map((course) => (
@@ -49,6 +59,7 @@ const CoursesList = () => {
           ))}
         </tbody>
       </table>
+      {courses.length === 0 ? <p className="mt-3 status-muted">No courses available.</p> : null}
     </Card>
   )
 }

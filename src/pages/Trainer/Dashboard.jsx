@@ -53,17 +53,17 @@ const TrainerDashboard = () => {
   ]
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="page-shell">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">Trainer dashboard</h1>
-          <p className="text-sm text-slate-500">Manage courses, follow up with enrollments, and message members.</p>
+          <h1 className="section-title">Trainer dashboard</h1>
+          <p className="section-subtitle">Manage courses, follow up with enrollments, and message members.</p>
         </div>
         <Button as={Link} to="/trainer/courses/create">
           New course
         </Button>
       </div>
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="status-error">{error}</p> : null}
       {dashboardQuery.isPending ? (
         <div className="grid gap-4 md:grid-cols-3">
           {[0, 1, 2].map((metric) => (

@@ -42,13 +42,13 @@ const TrainerApproval = () => {
 
   return (
     <Card title="Trainer approvals" description="Review pending submissions">
-      {error ? <p className="mb-3 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="mb-3 status-error">{error}</p> : null}
       <div className="space-y-4">
         {pendingApplications.length === 0 ? (
-          <p className="text-sm text-slate-500">No pending trainer proposals.</p>
+          <p className="status-muted">No pending trainer proposals.</p>
         ) : (
           pendingApplications.map((applicant) => (
-            <div key={applicant.id} className="rounded-2xl border border-slate-100 p-4 dark:border-slate-800">
+            <div key={applicant.id} className="surface-soft">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <p className="text-lg font-semibold text-slate-900 dark:text-white">{applicant.name}</p>

@@ -43,9 +43,9 @@ const adminSidebarLinks = [
 ]
 
 const AppLayout = () => (
-  <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+  <div className="min-h-screen text-slate-900 dark:text-slate-100">
     <Navbar />
-    <main className="mx-auto max-w-6xl px-4 py-8">
+    <main className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 md:px-6 md:pt-8">
       <Outlet />
     </main>
   </div>
@@ -57,7 +57,7 @@ const HomeRedirect = () => {
 
   if (!authReady) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">
+      <div className="status-muted">
         Loading session...
       </div>
     )
@@ -76,7 +76,7 @@ const ProtectedLayout = ({ allowedRoles, sidebarLinks, sidebarTitle }) => {
 
   if (!authReady) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900">
+      <div className="status-muted">
         Loading session...
       </div>
     )
@@ -88,9 +88,9 @@ const ProtectedLayout = ({ allowedRoles, sidebarLinks, sidebarTitle }) => {
   }
 
   return (
-    <div className="flex flex-col gap-6 lg:flex-row">
+    <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
       {sidebarLinks?.length ? <Sidebar title={sidebarTitle} links={sidebarLinks} /> : null}
-      <div className="flex-1 space-y-6">
+      <div className="flex-1 space-y-6 md:space-y-8">
         <Outlet />
       </div>
     </div>

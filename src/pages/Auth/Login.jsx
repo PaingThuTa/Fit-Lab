@@ -43,8 +43,8 @@ const Login = () => {
   }
 
   return (
-    <div className="mx-auto grid max-w-4xl gap-8 py-10 lg:grid-cols-2">
-      <div className="hidden flex-col justify-center rounded-3xl bg-gradient-to-br from-primary-600 to-secondary p-8 text-white lg:flex">
+    <div className="mx-auto grid max-w-4xl gap-8 py-6 lg:grid-cols-2">
+      <div className="hidden flex-col justify-center rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-secondary p-8 text-white shadow-xl shadow-primary-900/20 lg:flex">
         <p className="text-sm uppercase tracking-[0.3em] text-white/80">Welcome back</p>
         <h2 className="mt-4 text-3xl font-semibold">Train smarter with Fit-Lab</h2>
         <p className="mt-3 text-white/80">
@@ -88,7 +88,7 @@ const Login = () => {
                 name="role"
                 value={form.role}
                 onChange={handleChange}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                className="field-control"
               >
                 <option value="member">Member</option>
                 <option value="trainer">Trainer</option>
@@ -96,7 +96,7 @@ const Login = () => {
               </select>
             </label>
           )}
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          {error ? <p className="status-error">{error}</p> : null}
           <Button type="submit" className="w-full">
             {authLoading ? 'Signing in...' : `Continue${useApiMode ? '' : ` as ${form.role}`}`}
           </Button>

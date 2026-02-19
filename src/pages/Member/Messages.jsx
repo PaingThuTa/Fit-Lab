@@ -112,7 +112,7 @@ const MemberMessages = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="page-shell">
       <Button as={Link} to="/member" size="sm" variant="outline">
         Back to member home
       </Button>
@@ -123,7 +123,7 @@ const MemberMessages = () => {
           description="Sample conversations are preloaded so you can preview the flow"
           className="min-h-[520px] lg:h-[70vh] lg:max-h-[760px]"
         >
-          {error ? <p className="mb-2 text-sm text-red-600">{error}</p> : null}
+          {error ? <p className="mb-3 status-error">{error}</p> : null}
           <div className="max-h-[58vh] space-y-2 overflow-y-auto pr-1 lg:max-h-[calc(70vh-9rem)]">
             {threads.length === 0 && <p className="text-sm text-slate-500">No conversations yet.</p>}
             {threads.map((thread) => (
@@ -177,7 +177,7 @@ const MemberMessages = () => {
                     value={draft}
                     onChange={(event) => setDraft(event.target.value)}
                     placeholder="Type your update"
-                    className="min-h-[96px] w-full rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-900 focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="field-control min-h-[96px] w-full p-3"
                   />
                 </label>
                 <div className="flex flex-wrap items-center gap-3">
