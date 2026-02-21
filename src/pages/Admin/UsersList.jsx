@@ -30,8 +30,25 @@ const UsersList = () => {
 
   return (
     <Card title="Users" description="Members, trainers, and trainer applicant statuses">
-      {error ? <p className="mb-3 text-sm text-red-600">{error}</p> : null}
-      <table className="w-full text-left text-sm">
+      {error ? <p className="mb-3 status-error">{error}</p> : null}
+      <div className="space-y-3 md:hidden">
+        {users.map((user) => (
+          <div key={user.userId || user.email || user.fullName} className="mobile-list-row">
+            <p className="font-semibold text-slate-900 dark:text-white">{user.fullName}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">{user.email}</p>
+            <div className="mt-2 flex flex-wrap gap-2 text-xs">
+              <span className="rounded-full bg-slate-100 px-2 py-1 capitalize text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                {user.role}
+              </span>
+              <span className="rounded-full bg-primary-50 px-2 py-1 capitalize text-primary-700 dark:bg-primary-700/20 dark:text-primary-200">
+                {user.trainerApplicationStatus || 'none'}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <table className="hidden w-full text-left text-sm md:table">
         <thead className="text-xs uppercase text-slate-400">
           <tr>
             <th className="py-3">Name</th>
@@ -53,6 +70,7 @@ const UsersList = () => {
           })}
         </tbody>
       </table>
+      {users.length === 0 ? <p className="mt-3 status-muted">No users available.</p> : null}
     </Card>
   )
 }

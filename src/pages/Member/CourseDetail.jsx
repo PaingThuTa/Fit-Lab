@@ -94,7 +94,7 @@ const CourseDetail = () => {
   if (loading) {
     return (
       <Card title="Loading course">
-        <p className="text-sm text-slate-500">Fetching course details...</p>
+        <p className="status-muted">Fetching course details...</p>
       </Card>
     )
   }
@@ -102,7 +102,7 @@ const CourseDetail = () => {
   if (!course) {
     return (
       <Card title="Course not found">
-        <p className="text-sm text-slate-500">{error || 'This course is no longer available.'}</p>
+        <p className="status-muted">{error || 'This course is no longer available.'}</p>
         <Button as={Link} to="/member/courses" className="mt-4" variant="outline">
           Back to courses
         </Button>
@@ -119,7 +119,12 @@ const CourseDetail = () => {
       }))
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell">
+      {course.thumbnailUrl ? (
+        <div className="fade-in-up overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800">
+          <img src={course.thumbnailUrl} alt={course.title} className="h-56 w-full object-cover md:h-72" />
+        </div>
+      ) : null}
       <Card
         title={course.title}
         description={`${course.level} • ${course.category || 'Uncategorized'} • Led by ${course.trainerName}`}
@@ -144,7 +149,7 @@ const CourseDetail = () => {
         </div>
         {!isEnrolled ? (
           showEnrollConfirm ? (
-            <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+            <div className="surface-soft mt-6">
               <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
                 Confirm enrollment for this course?
               </p>
@@ -170,8 +175,8 @@ const CourseDetail = () => {
             </div>
           )
         ) : null}
-        {displayError ? <p className="mt-3 text-sm text-red-600">{displayError}</p> : null}
-        {notice ? <p className="mt-3 text-sm text-emerald-600">{notice}</p> : null}
+        {displayError ? <p className="mt-3 status-error">{displayError}</p> : null}
+        {notice ? <p className="mt-3 status-success">{notice}</p> : null}
       </Card>
     </div>
   )

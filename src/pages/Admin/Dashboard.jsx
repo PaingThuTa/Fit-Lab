@@ -49,12 +49,12 @@ const AdminDashboard = () => {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell">
       <div>
-        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">Admin overview</h1>
-        <p className="text-sm text-slate-500">Audit courses, review trainer proposals, and monitor member activity.</p>
+        <h1 className="section-title">Admin overview</h1>
+        <p className="section-subtitle">Audit courses, review trainer proposals, and monitor member activity.</p>
       </div>
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="status-error">{error}</p> : null}
       <div className="grid gap-4 md:grid-cols-3">
         {stats.map((stat) => (
           <Card key={stat.label}>

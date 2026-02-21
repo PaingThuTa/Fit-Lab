@@ -24,6 +24,20 @@ const postMessage = asyncHandler(async (req, res) => {
     content: req.body.content,
   });
 
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`user:${message.senderId}`)
+      .to(`user:${message.receiverId}`)
+      .emit('message:new', {
+        messageId: message.messageId,
+        senderId: message.senderId,
+        receiverId: message.receiverId,
+        courseId: message.courseId,
+        content: message.content,
+        sentAt: message.sentAt,
+      });
+  }
+
   res.status(201).json({ message });
 });
 

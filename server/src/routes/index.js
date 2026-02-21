@@ -7,6 +7,7 @@ const proposalRoutes = require('../modules/proposals/routes');
 const adminRoutes = require('../modules/admin/routes');
 const dashboardRoutes = require('../modules/dashboard/routes');
 const messagingRoutes = require('../modules/messaging/routes');
+const uploadRoutes = require('../modules/upload/routes');
 
 const router = express.Router();
 
@@ -25,5 +26,6 @@ router.use('/trainer-proposals', proposalRoutes);
 router.use('/admin', adminRoutes);
 router.use('/', dashboardRoutes);
 router.use('/messages', messagingRoutes);
+router.use('/upload', uploadRoutes);
 
 module.exports = router;

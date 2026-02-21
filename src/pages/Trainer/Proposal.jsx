@@ -94,9 +94,9 @@ const Proposal = () => {
   const status = existingApplication?.status || 'not-submitted'
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl page-shell">
       <Card title="Trainer proposal" description="Apply to coach members on the Fit-Lab platform">
-        <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm dark:border-slate-800 dark:bg-slate-900/60">
+        <div className="surface-soft text-sm">
           <p className="font-medium text-slate-900 dark:text-white">Current status: {status}</p>
           <p className="mt-1 text-slate-600 dark:text-slate-300">
             Trainer applications are reviewed by admins before trainer tools are unlocked.
@@ -109,7 +109,7 @@ const Proposal = () => {
               name="message"
               value={form.message}
               onChange={handleChange}
-              className="mt-2 min-h-[100px] w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              className="field-control mt-2 min-h-[100px] w-full p-4"
               placeholder="Share what you want to coach and why you are a good fit."
             />
           </label>
@@ -151,7 +151,7 @@ const Proposal = () => {
               name="bio"
               value={form.bio}
               onChange={handleChange}
-              className="mt-2 min-h-[140px] w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              className="field-control mt-2 min-h-[140px] w-full p-4"
               placeholder="Describe your coaching approach, audience, and safety standards."
             />
           </label>
@@ -161,8 +161,8 @@ const Proposal = () => {
               Back to member home
             </Button>
           </div>
-          {error ? <p className="md:col-span-2 text-sm text-red-600">{error}</p> : null}
-          {notice ? <p className="md:col-span-2 text-sm text-emerald-600">{notice}</p> : null}
+          {error ? <p className="md:col-span-2 status-error">{error}</p> : null}
+          {notice ? <p className="md:col-span-2 status-success">{notice}</p> : null}
         </form>
       </Card>
     </div>

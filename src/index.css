@@ -3,18 +3,214 @@
 @tailwind utilities;
 
 :root {
+  --page-bg: 248 250 252;
+  --page-bg-accent: 238 242 255;
+  --surface-bg: 255 255 255;
+  --surface-muted: 241 245 249;
+  --text-main: 15 23 42;
+  --text-muted: 100 116 139;
+  --ring-primary: 75 103 242;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.15rem;
+  --shadow-soft: 0 14px 38px -24px rgba(15, 23, 42, 0.45);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-fast: 140ms;
+  --motion-base: 220ms;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     sans-serif;
-  color: rgb(15, 23, 42);
-  background-color: rgb(248, 250, 252);
+  color: rgb(var(--text-main));
+  background-color: rgb(var(--page-bg));
 }
 
+html,
 body {
   margin: 0;
-  min-height: 100vh;
-  background-color: rgb(248, 250, 252);
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(var(--page-bg-accent) / 0.68), transparent 35%),
+    rgb(var(--page-bg));
 }
 
 #root {
   min-height: 100vh;
+}
+
+@layer base {
+  * {
+    @apply border-slate-200 dark:border-slate-800;
+  }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900;
+  }
+
+  ::selection {
+    @apply bg-primary-200/60 text-slate-900;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply tracking-tight;
+  }
+
+  p {
+    @apply leading-relaxed;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply space-y-6 md:space-y-8;
+  }
+
+  .page-header {
+    @apply flex flex-wrap items-end justify-between gap-4;
+  }
+
+  .section-title {
+    @apply text-3xl font-semibold text-slate-900 dark:text-white;
+  }
+
+  .section-subtitle {
+    @apply mt-1 text-sm text-slate-500 dark:text-slate-400;
+  }
+
+  .panel {
+    @apply rounded-2xl border border-slate-200/80 bg-white/90 p-6 shadow-[var(--shadow-soft)] backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/85;
+  }
+
+  .surface-soft {
+    @apply rounded-2xl border border-slate-100 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/60;
+  }
+
+  .status-error {
+    @apply rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300;
+  }
+
+  .status-success {
+    @apply rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300;
+  }
+
+  .status-muted {
+    @apply rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300;
+  }
+
+  .field-control {
+    @apply rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm transition-all duration-200 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-primary-500/30;
+  }
+
+  .mobile-list-row {
+    @apply rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-800 dark:bg-slate-900;
+  }
+
+  /* ── chat UI ── */
+  .chat-shell {
+    @apply relative flex h-[calc(100vh-7.5rem)] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900;
+  }
+
+  .chat-threads {
+    @apply w-full flex-col border-r border-slate-200/70 bg-white dark:border-slate-800 dark:bg-slate-900 lg:w-[300px] lg:shrink-0;
+  }
+
+  .chat-thread-item {
+    @apply flex w-full items-start gap-3 border-b border-slate-100/80 px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:border-slate-800/60 dark:hover:bg-slate-800/50;
+  }
+
+  .chat-thread-active {
+    @apply bg-primary-50/60 hover:bg-primary-50/80 dark:bg-primary-500/10 dark:hover:bg-primary-500/15;
+  }
+
+  .chat-avatar {
+    @apply flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-primary-600 font-bold text-white;
+  }
+
+  .chat-avatar-sm {
+    @apply h-9 w-9 text-[11px];
+  }
+
+  .chat-main {
+    @apply min-w-0 flex-1 flex-col;
+  }
+
+  .chat-header {
+    @apply flex items-center gap-3 border-b border-slate-200/70 bg-white/95 px-4 py-2.5 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/95;
+  }
+
+  .chat-messages {
+    @apply flex-1 overflow-y-auto px-4 py-4;
+    background-image: radial-gradient(circle at 50% 0%, rgb(238 242 255 / 0.3), transparent 60%);
+  }
+
+  .dark .chat-messages {
+    background-image: radial-gradient(circle at 50% 0%, rgb(30 41 59 / 0.3), transparent 60%);
+  }
+
+  .chat-bubble {
+    @apply rounded-2xl px-3.5 py-2 text-[13px] leading-relaxed;
+  }
+
+  .chat-bubble-own {
+    @apply bg-primary-600 text-white rounded-br-md;
+  }
+
+  .chat-bubble-other {
+    @apply bg-slate-100 text-slate-800 rounded-bl-md dark:bg-slate-800 dark:text-slate-100;
+  }
+
+  .chat-composer {
+    @apply border-t border-slate-200/70 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900;
+  }
+
+  .chat-input {
+    @apply flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-primary-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary-400/30 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-primary-500 dark:focus:bg-slate-800;
+    max-height: 120px;
+    field-sizing: content;
+  }
+
+  .chat-send-btn {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-600 text-white shadow-sm transition-all hover:bg-primary-700 active:scale-95 disabled:opacity-40 disabled:pointer-events-none;
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.32s var(--ease-out);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* dark mode body bg */
+.dark body,
+.dark {
+  --page-bg: 15 23 42;
+  --page-bg-accent: 30 41 59;
+}
+
+html.dark,
+html.dark body {
+  background:
+    radial-gradient(circle at 100% 0%, rgb(var(--page-bg-accent) / 0.35), transparent 35%),
+    rgb(var(--page-bg));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -7,7 +7,7 @@ const Profile = () => {
   const profile = user ?? { name: 'Jordan Wells', role: 'member', city: 'Austin, TX' }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr,2fr]">
+    <div className="page-shell grid gap-6 lg:grid-cols-[1fr,2fr]">
       <Card>
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary-100 text-xl font-semibold text-primary-700">

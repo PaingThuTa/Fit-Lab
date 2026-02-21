@@ -53,15 +53,15 @@ const MyCourses = () => {
   }, [currentName])
 
   return (
-    <div className="space-y-6">
+    <div className="page-shell">
       <div>
-        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">My courses</h1>
-        <p className="text-sm text-slate-500">Review enrolled dates and pick up where you left off.</p>
+        <h1 className="section-title">My courses</h1>
+        <p className="section-subtitle">Review enrolled dates and pick up where you left off.</p>
       </div>
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="status-error">{error}</p> : null}
       {loading ? (
         <Card>
-          <p className="text-sm text-slate-500">Loading enrollments...</p>
+          <p className="status-muted">Loading enrollments...</p>
         </Card>
       ) : null}
       {!loading && myEnrollments.length === 0 ? (
@@ -78,19 +78,47 @@ const MyCourses = () => {
             return (
               <Card
                 key={item.id}
-                title={course?.title || item.courseName || 'Course removed'}
-                description={`Enrolled ${formatShortDate(item.enrolledAt)}`}
+                className="group !p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-18px_rgba(15,23,42,0.45)]"
               >
-                <div className="mt-4 flex items-center justify-between text-sm">
-                  {item.courseId ? (
-                    <Button as={Link} to={`/member/courses/${item.courseId}`} size="sm">
-                      Resume
-                    </Button>
-                  ) : (
-                    <Button size="sm" variant="outline" disabled>
-                      Course unavailable
-                    </Button>
-                  )}
+                <div className="flex items-start gap-4">
+                  <div className="aspect-video h-[90px] w-40 shrink-0 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200/80 dark:bg-slate-800 dark:ring-slate-700/80">
+                    {course?.thumbnailUrl ? (
+                      <img
+                        src={course.thumbnailUrl}
+                        alt={course?.title || item.courseName || 'Course thumbnail'}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-100 to-primary-50 px-3 dark:from-slate-800 dark:to-slate-900">
+                        <p className="line-clamp-3 text-center text-sm font-bold leading-tight text-slate-700/90 dark:text-slate-100/90">
+                          {course?.title || item.courseName || 'Course'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div>
+                      <h3 className="line-clamp-1 text-base font-bold text-slate-900 dark:text-white">
+                        {course?.title || item.courseName || 'Course removed'}
+                      </h3>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        Enrolled {formatShortDate(item.enrolledAt)}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-end">
+                      {item.courseId ? (
+                        <Button as={Link} to={`/member/courses/${item.courseId}`} size="sm" className="h-9 min-w-[132px]">
+                          Resume Learning
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" disabled className="h-9 min-w-[132px]">
+                          Course unavailable
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </Card>
             )

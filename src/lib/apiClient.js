@@ -58,3 +58,30 @@ export async function apiRequest(path, options = {}) {
 
   return payload
 }
+
+export async function apiUpload(path, file, { token, signal } = {}) {
+  const authToken = token || authTokenStorage.get()
+  const formData = new FormData()
+  formData.append('image', file)
+
+  const response = await fetch(buildUrl(path), {
+    method: 'POST',
+    signal,
+    headers: {
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+    },
+    body: formData,
+  })
+
+  const isJson = response.headers.get('content-type')?.includes('application/json')
+  const payload = isJson ? await response.json() : null
+
+  if (!response.ok) {
+    const errorMessage = payload?.message || `Upload failed with status ${response.status}`
+    const error = new Error(errorMessage)
+    error.status = response.status
+    throw error
+  }
+
+  return payload
+}

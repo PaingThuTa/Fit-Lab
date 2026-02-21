@@ -37,7 +37,7 @@ const Register = () => {
   }
 
   return (
-    <div className="mx-auto grid max-w-4xl gap-8 py-10 lg:grid-cols-2">
+    <div className="mx-auto grid max-w-4xl gap-8 py-6 lg:grid-cols-2">
       <Card title="Create an account" description="Just a few details to personalize your view">
         <form className="space-y-4" onSubmit={handleSubmit}>
           <Input label="Full name" name="name" placeholder="Avery Cole" value={form.name} onChange={handleChange} />
@@ -63,13 +63,13 @@ const Register = () => {
               name="interest"
               value={form.interest}
               onChange={handleChange}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-slate-900 shadow-sm focus:border-primary-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              className="field-control"
             >
               <option value="training">Finding training programs</option>
               <option value="coaching">Coaching other members</option>
             </select>
           </label>
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          {error ? <p className="status-error">{error}</p> : null}
           <Button type="submit" className="w-full">
             {authLoading ? 'Creating account...' : 'Continue'}
           </Button>
@@ -81,7 +81,7 @@ const Register = () => {
           </Link>
         </p>
       </Card>
-      <div className="hidden flex-col justify-center rounded-3xl bg-gradient-to-br from-slate-900 to-primary-700 p-8 text-white lg:flex">
+      <div className="hidden flex-col justify-center rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-primary-700 p-8 text-white shadow-xl shadow-slate-900/30 lg:flex">
         <h3 className="text-2xl font-semibold">Why Fit-Lab?</h3>
         <ul className="mt-6 space-y-4 text-sm text-white/80">
           <li>• Access curated workouts from verified trainers.</li>

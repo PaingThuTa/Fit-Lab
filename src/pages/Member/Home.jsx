@@ -83,10 +83,10 @@ const Home = () => {
   const error = queryError
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[280px,1fr]">
+    <div className="page-shell grid gap-6 lg:grid-cols-[280px,1fr]">
       <div className="space-y-4">
         {myTrainerApplication ? (
-          <div className="rounded-2xl border border-primary-200 bg-primary-50 p-4 dark:border-primary-400/40 dark:bg-slate-900">
+          <div className="surface-soft border-primary-200 bg-primary-50/70 dark:border-primary-400/30">
             <p className="text-xs uppercase tracking-[0.25em] text-primary-600 dark:text-primary-300">
               Trainer application
             </p>
@@ -101,7 +101,7 @@ const Home = () => {
             </Button>
           </div>
         ) : null}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="panel">
           <p className="text-xs uppercase tracking-[0.25em] text-slate-400">Member tools</p>
           <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">Your shortcuts</h1>
           <p className="mt-1 text-sm text-slate-500">Jump straight to the essentials.</p>
@@ -120,7 +120,7 @@ const Home = () => {
       </div>
 
       <div className="space-y-10">
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error ? <p className="status-error">{error}</p> : null}
         {loading ? (
           <div className="grid gap-4 md:grid-cols-2">
             {[0, 1].map((item) => (
@@ -144,20 +144,34 @@ const Home = () => {
           </div>
           <div className="grid gap-6 md:grid-cols-2">
             {availableCourses.map((course) => (
-              <Card key={course.id} title={course.title} description={`${course.level} • ${course.category || 'Uncategorized'}`}>
-                <p className="text-sm text-slate-600 dark:text-slate-300">{course.description}</p>
-                <div className="mt-4 flex items-center justify-between text-sm">
-                  <span className="font-semibold text-primary-600">{course.price}</span>
+              <div
+                key={course.id}
+                className="fade-in-up overflow-hidden rounded-2xl border border-slate-200/80 bg-white/90 shadow-[var(--shadow-soft)] transition-transform duration-200 hover:-translate-y-0.5 dark:border-slate-800 dark:bg-slate-900/90"
+              >
+                {course.thumbnailUrl ? (
+                  <img src={course.thumbnailUrl} alt={course.title} className="h-40 w-full object-cover" />
+                ) : (
+                  <div className="flex h-40 items-center justify-center bg-gradient-to-br from-primary-100 to-primary-50 px-6 dark:from-slate-800 dark:to-slate-900">
+                    <span className="text-center text-xl font-bold leading-snug text-primary-300 dark:text-slate-600">{course.title}</span>
+                  </div>
+                )}
+                <div className="p-5">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{course.title}</h3>
+                  <p className="mt-0.5 text-xs text-slate-500">{course.level} • {course.category || 'Uncategorized'}</p>
+                  <p className="mt-3 line-clamp-2 text-sm text-slate-600 dark:text-slate-300">{course.description}</p>
+                  <div className="mt-4 flex items-center justify-between text-sm">
+                    <span className="font-semibold text-primary-600">{course.price}</span>
+                  </div>
+                  <div className="mt-4 flex items-center gap-3">
+                    <Button as={Link} to={`/member/courses/${course.id}`} size="sm">
+                      View details
+                    </Button>
+                    <Button as={Link} to={`/member/courses/${course.id}?intent=enroll`} variant="outline" size="sm">
+                      Enroll
+                    </Button>
+                  </div>
                 </div>
-                <div className="mt-5 flex items-center gap-3">
-                  <Button as={Link} to={`/member/courses/${course.id}`} size="sm">
-                    View details
-                  </Button>
-                  <Button as={Link} to={`/member/courses/${course.id}?intent=enroll`} variant="outline" size="sm">
-                    Enroll
-                  </Button>
-                </div>
-              </Card>
+              </div>
             ))}
             {!loading && availableCourses.length === 0 ? (
               <Card>
