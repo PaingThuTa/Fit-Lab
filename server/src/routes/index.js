@@ -8,6 +8,7 @@ const adminRoutes = require('../modules/admin/routes');
 const dashboardRoutes = require('../modules/dashboard/routes');
 const messagingRoutes = require('../modules/messaging/routes');
 const uploadRoutes = require('../modules/upload/routes');
+const paymentRoutes = require('../modules/payments/routes');
 
 const router = express.Router();
 
@@ -27,5 +28,6 @@ router.use('/admin', adminRoutes);
 router.use('/', dashboardRoutes);
 router.use('/messages', messagingRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/payments', paymentRoutes);
 
 module.exports = router;

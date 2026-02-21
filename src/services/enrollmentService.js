@@ -92,3 +92,37 @@ export async function getTrainerEnrollments({ trainerName, signal } = {}) {
       enrolledAt: enrollment.enrolledAt || null,
     }))
 }
+
+/**
+ * Submits a mock payment and completes enrollment atomically on the backend.
+ * In API mode: POST /api/payments/mock-pay  { courseId, cardLastFour }
+ * In mock mode: inserts directly into mock state (no payment record).
+ * @param {string} courseId
+ * @param {{ cardLastFour?: string, memberName?: string, signal?: AbortSignal }} options
+ */
+export async function submitMockPayment(courseId, { cardLastFour, memberName, signal } = {}) {
+  if (useApiMode) {
+    await apiRequest('/payments/mock-pay', {
+      method: 'POST',
+      body: { courseId, cardLastFour },
+      signal,
+    })
+    return
+  }
+
+  // Mock fallback — reuse the existing mock enrollment path
+  const state = getMockState()
+  const existing = state.enrollments.find(
+    (item) => item.courseId === courseId && item.memberName === memberName
+  )
+  if (existing) throw new Error('Already enrolled in this course')
+
+  const course = state.courses.find((item) => item.id === courseId)
+  state.enrollments.push({
+    id: `e${Date.now()}`,
+    courseId,
+    memberName,
+    courseName: course?.title || '',
+    enrolledAt: new Date().toISOString(),
+  })
+}

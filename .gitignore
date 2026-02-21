@@ -29,5 +29,4 @@ dist-ssr
 server/.env
 server/.env.*
 AGENTS.md
-AGENTS.md
-AGENTS.md
+.github/

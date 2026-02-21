@@ -4,7 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import { getCourseDetail } from '../../services/courseService'
-import { enrollInCourse, getMyEnrollments } from '../../services/enrollmentService'
+import { submitMockPayment, getMyEnrollments } from '../../services/enrollmentService'
+import { PaymentForm } from '../../components/PaymentForm'
 import { useAuthStore } from '../../store/useAuthStore'
 import { queryKeys } from '../../lib/queryKeys'
 
@@ -27,10 +28,11 @@ const CourseDetail = () => {
     queryFn: ({ signal }) => getMyEnrollments({ memberName: currentName, signal }),
   })
 
-  const enrollMutation = useMutation({
-    mutationFn: () => enrollInCourse(courseId, { memberName: currentName }),
+  const paymentMutation = useMutation({
+    mutationFn: ({ cardLastFour }) =>
+      submitMockPayment(courseId, { cardLastFour, memberName: currentName }),
     onSuccess: async () => {
-      setNotice('Enrollment successful.')
+      setNotice('Payment successful. You are now enrolled!')
       setShowEnrollConfirm(false)
       setSearchParams({}, { replace: true })
       await Promise.all([
@@ -38,8 +40,8 @@ const CourseDetail = () => {
         queryClient.invalidateQueries({ queryKey: queryKeys.memberDashboard }),
       ])
     },
-    onError: (enrollError) => {
-      setError(enrollError.message || 'Unable to enroll')
+    onError: (payError) => {
+      setError(payError.message || 'Payment failed')
     },
   })
 
@@ -71,10 +73,16 @@ const CourseDetail = () => {
     }
   }, [courseId])
 
-  const handleEnroll = async () => {
+  const handlePaymentSuccess = async ({ cardLastFour }) => {
     setError('')
     setNotice('')
-    enrollMutation.mutate()
+    // returns a promise so PaymentForm can catch/display errors itself
+    return new Promise((resolve, reject) => {
+      paymentMutation.mutate(
+        { cardLastFour },
+        { onSuccess: resolve, onError: reject }
+      )
+    })
   }
 
   const enrolledCourseIds = new Set((myEnrollmentsQuery.data || []).map((item) => String(item.courseId)))
@@ -150,23 +158,15 @@ const CourseDetail = () => {
         {!isEnrolled ? (
           showEnrollConfirm ? (
             <div className="surface-soft mt-6">
-              <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
-                Confirm enrollment for this course?
-              </p>
-              <div className="mt-3 flex flex-wrap gap-3">
-                <Button onClick={handleEnroll} disabled={enrollMutation.isPending}>
-                  {enrollMutation.isPending ? 'Enrolling...' : 'Confirm enroll'}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowEnrollConfirm(false)
-                    setSearchParams({}, { replace: true })
-                  }}
-                >
-                  Not now
-                </Button>
-              </div>
+              <PaymentForm
+                courseTitle={course.title}
+                coursePrice={course.price}
+                onSuccess={handlePaymentSuccess}
+                onCancel={() => {
+                  setShowEnrollConfirm(false)
+                  setSearchParams({}, { replace: true })
+                }}
+              />
             </div>
           ) : (
             <div className="mt-6 flex flex-wrap gap-3">
