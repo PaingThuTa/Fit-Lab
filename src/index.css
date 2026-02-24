@@ -12,12 +12,13 @@
   --ring-primary: 75 103 242;
   --radius-xl: 1rem;
   --radius-2xl: 1.15rem;
-  --shadow-soft: 0 14px 38px -24px rgba(15, 23, 42, 0.45);
+  --shadow-soft: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 8px 24px -8px rgba(15, 23, 42, 0.12);
+  --shadow-card: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 4px 16px -4px rgba(15, 23, 42, 0.10);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-fast: 140ms;
   --motion-base: 220ms;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    sans-serif;
+  --font-display: 'Barlow Semi Condensed', sans-serif;
+  font-family: 'Figtree', system-ui, -apple-system, sans-serif;
   color: rgb(var(--text-main));
   background-color: rgb(var(--page-bg));
 }
@@ -27,7 +28,7 @@ body {
   margin: 0;
   min-height: 100%;
   background:
-    radial-gradient(circle at 100% 0%, rgb(var(--page-bg-accent) / 0.68), transparent 35%),
+    radial-gradient(ellipse at 80% 0%, rgb(var(--page-bg-accent) / 0.55), transparent 45%),
     rgb(var(--page-bg));
 }
 
@@ -70,15 +71,17 @@ body {
   }
 
   .section-title {
+    font-family: var(--font-display);
     @apply text-3xl font-semibold text-slate-900 dark:text-white;
+    letter-spacing: -0.01em;
   }
 
   .section-subtitle {
-    @apply mt-1 text-sm text-slate-500 dark:text-slate-400;
+    @apply mt-1.5 text-sm text-slate-500 dark:text-slate-400;
   }
 
   .panel {
-    @apply rounded-2xl border border-slate-200/80 bg-white/90 p-6 shadow-[var(--shadow-soft)] backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/85;
+    @apply rounded-2xl border border-slate-200/70 bg-white p-6 shadow-[var(--shadow-soft)] dark:border-slate-800 dark:bg-slate-900/95;
   }
 
   .surface-soft {
@@ -175,13 +178,13 @@ body {
 }
 
 .fade-in-up {
-  animation: fadeInUp 0.32s var(--ease-out);
+  animation: fadeInUp 0.28s var(--ease-out);
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translate3d(0, 8px, 0);
+    transform: translate3d(0, 6px, 0);
   }
 
   to {
@@ -200,7 +203,7 @@ body {
 html.dark,
 html.dark body {
   background:
-    radial-gradient(circle at 100% 0%, rgb(var(--page-bg-accent) / 0.35), transparent 35%),
+    radial-gradient(ellipse at 80% 0%, rgb(var(--page-bg-accent) / 0.30), transparent 45%),
     rgb(var(--page-bg));
 }
 

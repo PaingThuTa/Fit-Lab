@@ -29,25 +29,25 @@ import TrainerApproval from './pages/Admin/TrainerApproval'
 
 /* ── sidebar link configs ── */
 const memberSidebarLinks = [
-  { label: 'Home', to: '/member', end: true },
-  { label: 'Browse Courses', to: '/member/courses' },
-  { label: 'My Courses', to: '/member/course' },
-  { label: 'Messages', to: '/member/messages' },
+  { label: 'Home', to: '/member', end: true, icon: 'home' },
+  { label: 'Browse Courses', to: '/member/courses', icon: 'compass' },
+  { label: 'My Courses', to: '/member/course', icon: 'bookmark' },
+  { label: 'Messages', to: '/member/messages', icon: 'chat' },
 ]
 
 const trainerSidebarLinks = [
-  { label: 'Dashboard', to: '/trainer', end: true },
-  { label: 'Courses', to: '/trainer/courses' },
-  { label: 'Create Course', to: '/trainer/courses/create' },
-  { label: 'Enrollments', to: '/trainer/enrollments' },
-  { label: 'Messages', to: '/trainer/messages' },
+  { label: 'Dashboard', to: '/trainer', end: true, icon: 'chart' },
+  { label: 'Courses', to: '/trainer/courses', icon: 'book' },
+  { label: 'Create Course', to: '/trainer/courses/create', icon: 'plus' },
+  { label: 'Enrollments', to: '/trainer/enrollments', icon: 'users' },
+  { label: 'Messages', to: '/trainer/messages', icon: 'chat' },
 ]
 
 const adminSidebarLinks = [
-  { label: 'Dashboard', to: '/admin', end: true },
-  { label: 'Users', to: '/admin/users' },
-  { label: 'Courses', to: '/admin/courses' },
-  { label: 'Trainer Approvals', to: '/admin/trainer-approvals' },
+  { label: 'Dashboard', to: '/admin', end: true, icon: 'chart' },
+  { label: 'Users', to: '/admin/users', icon: 'users' },
+  { label: 'Courses', to: '/admin/courses', icon: 'book' },
+  { label: 'Trainer Approvals', to: '/admin/trainer-approvals', icon: 'badge' },
 ]
 
 /* ── app shell — no sidebar (auth pages, guest) ── */

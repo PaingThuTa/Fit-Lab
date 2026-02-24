@@ -112,12 +112,12 @@ const Navbar = ({ onMobileMenuToggle, mobileMenuOpen }) => {
   const pageTitle = sectionTitles[activeSection] || ''
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl dark:border-slate-800/60 dark:bg-slate-950/80">
+    <header className="sticky top-0 z-40 border-b border-slate-200/60 bg-white/90 backdrop-blur-xl dark:border-slate-800/60 dark:bg-slate-950/90">
       <div className="flex h-14 items-center justify-between gap-4 px-4 md:px-6 lg:px-8">
         {/* ── left: hamburger + section context ── */}
         <div className="flex items-center gap-3 min-w-0">
           {/* mobile hamburger — only when sidebar is relevant */}
-          {onMobileMenuToggle && (
+          {onMobileMenuToggle ? (
             <button
               type="button"
               onClick={onMobileMenuToggle}
@@ -126,6 +126,16 @@ const Navbar = ({ onMobileMenuToggle, mobileMenuOpen }) => {
             >
               {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
             </button>
+          ) : (
+            /* brand — shown on pages without sidebar (auth, guest) */
+            <div className="flex items-center gap-2 lg:hidden">
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary-600 text-[11px] font-bold text-white">
+                F
+              </div>
+              <span className="text-[14px] font-bold tracking-tight text-slate-900 dark:text-white">
+                Fit<span className="text-primary-600">Lab</span>
+              </span>
+            </div>
           )}
 
           {user && role && pageTitle ? (
@@ -165,7 +175,7 @@ const Navbar = ({ onMobileMenuToggle, mobileMenuOpen }) => {
                 className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800/70"
               >
                 {/* avatar */}
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-primary-400 to-primary-600 text-[11px] font-bold text-white shadow-sm">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-[11px] font-bold text-white shadow-sm shadow-primary-600/20">
                   {getInitials(user.name)}
                 </div>
                 {/* name (hidden on small screens) */}
@@ -180,7 +190,7 @@ const Navbar = ({ onMobileMenuToggle, mobileMenuOpen }) => {
                 <div className="absolute right-0 top-full z-50 mt-2 w-64 origin-top-right animate-[fadeInUp_0.15s_ease-out] rounded-xl border border-slate-200/80 bg-white p-1.5 shadow-lg shadow-slate-900/10 dark:border-slate-700/80 dark:bg-slate-900 dark:shadow-slate-950/40">
                   {/* user info header */}
                   <div className="flex items-center gap-3 rounded-lg px-3 py-2.5">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 text-sm font-bold text-white">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-sm font-bold text-white shadow-sm shadow-primary-600/20">
                       {getInitials(user.name)}
                     </div>
                     <div className="min-w-0">
