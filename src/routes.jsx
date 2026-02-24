@@ -54,7 +54,7 @@ const adminSidebarLinks = [
 const AppLayout = () => (
   <div className="min-h-screen text-slate-900 dark:text-slate-100">
     <Navbar />
-    <main className="mx-auto w-full max-w-5xl px-4 pb-10 pt-6 md:px-6 md:pt-8">
+    <main className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 md:px-6 md:pt-8">
       <Outlet />
     </main>
   </div>
@@ -93,7 +93,7 @@ const ProtectedLayout = ({ allowedRoles, sidebarLinks, sidebarTitle }) => {
     return (
       <div className="min-h-screen text-slate-900 dark:text-slate-100">
         <Navbar />
-        <main className="mx-auto w-full max-w-5xl px-4 pb-10 pt-6 md:px-6 md:pt-8">
+        <main className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 md:px-6 md:pt-8">
           <div className="status-muted">Loading session...</div>
         </main>
       </div>
@@ -126,7 +126,7 @@ const ProtectedLayout = ({ allowedRoles, sidebarLinks, sidebarTitle }) => {
           />
 
           <main className="min-h-[calc(100vh-3.5rem)] min-w-0 px-4 pb-10 pt-5 md:px-6 lg:px-10 lg:pt-7 xl:px-12">
-            <div className="mx-auto w-full max-w-5xl space-y-6 md:space-y-8">
+            <div className="mx-auto w-full max-w-6xl space-y-6 md:space-y-8">
               <Outlet />
             </div>
           </main>
@@ -139,7 +139,7 @@ const ProtectedLayout = ({ allowedRoles, sidebarLinks, sidebarTitle }) => {
   return (
     <div className="min-h-screen text-slate-900 dark:text-slate-100">
       <Navbar />
-      <main className="mx-auto w-full max-w-5xl px-4 pb-10 pt-6 md:px-6 md:pt-8">
+      <main className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 md:px-6 md:pt-8">
         <div className="space-y-6 md:space-y-8">
           <Outlet />
         </div>
