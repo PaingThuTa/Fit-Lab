@@ -32,6 +32,11 @@ async function upsertMyProposal(userId, payload) {
     throw new AppError(400, 'message is required');
   }
 
+  const existing = await repository.findProposalByUserId(userId);
+  if (existing && String(existing.status || '').toUpperCase() === 'APPROVED') {
+    throw new AppError(400, 'Your trainer application has already been approved.');
+  }
+
   await repository.upsertProposal({
     userId,
     message,

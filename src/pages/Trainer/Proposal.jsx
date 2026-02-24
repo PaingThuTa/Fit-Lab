@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Card from '../../components/Card'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
@@ -19,6 +19,7 @@ const Proposal = () => {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [saving, setSaving] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     let mounted = true
@@ -84,6 +85,7 @@ const Proposal = () => {
       )
       setExistingApplication(proposal)
       setNotice('Proposal submitted for admin review.')
+      navigate('/member')
     } catch (submitError) {
       setError(submitError.message || 'Unable to submit proposal')
     } finally {
@@ -92,6 +94,24 @@ const Proposal = () => {
   }
 
   const status = existingApplication?.status || 'not-submitted'
+
+  if (status === 'approved') {
+    return (
+      <div className="mx-auto max-w-3xl page-shell">
+        <Card title="Trainer proposal" description="Apply to coach members on the Fit-Lab platform">
+          <div className="surface-soft text-sm">
+            <p className="font-medium text-slate-900 dark:text-white">Current status: {status}</p>
+          </div>
+          <p className="mt-4 text-slate-700 dark:text-slate-300">
+            Congratulations! Your trainer application has been approved. You now have full access to trainer tools.
+          </p>
+          <div className="mt-4">
+            <Button as={Link} to="/trainer" variant="outline">Go to trainer dashboard</Button>
+          </div>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto max-w-3xl page-shell">

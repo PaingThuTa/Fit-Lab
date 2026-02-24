@@ -73,6 +73,19 @@ const CreateCourse = () => {
     event.preventDefault()
     setError('')
 
+    if (!form.title.trim()) {
+      setError('Course title is required.')
+      return
+    }
+    if (!form.level) {
+      setError('Please select a difficulty level.')
+      return
+    }
+    if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0) {
+      setError('Price must be a valid positive number.')
+      return
+    }
+
     try {
       const lessons = form.lessons
         .map((lesson) => ({

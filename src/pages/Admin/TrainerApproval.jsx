@@ -31,9 +31,20 @@ const TrainerApproval = () => {
     const confirmed = window.confirm(confirmationMessage)
     if (!confirmed) return
 
+    let rejectionReason
+    if (action === 'reject') {
+      const reason = window.prompt('Enter a rejection reason for the applicant (required):')
+      if (reason === null) return
+      if (!reason.trim()) {
+        setError('Rejection reason is required.')
+        return
+      }
+      rejectionReason = reason.trim()
+    }
+
     try {
       setError('')
-      await reviewTrainerProposal({ proposalId, action })
+      await reviewTrainerProposal({ proposalId, action, rejectionReason })
       setTrainerApplications((current) => current.filter((item) => item.id !== proposalId))
     } catch (reviewError) {
       setError(reviewError.message || 'Unable to review proposal')

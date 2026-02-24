@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import Card from '../../components/Card'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
@@ -11,7 +11,11 @@ const Login = () => {
   const [error, setError] = useState('')
   const login = useAuthStore((state) => state.login)
   const authLoading = useAuthStore((state) => state.authLoading)
+  const authReady = useAuthStore((state) => state.authReady)
+  const role = useAuthStore((state) => state.role)
   const navigate = useNavigate()
+
+  if (authReady && role) return <Navigate to={`/${role}`} replace />
 
   const handleChange = (event) => {
     const { name, value } = event.target
