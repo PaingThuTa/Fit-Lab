@@ -81,7 +81,7 @@ const Courses = () => {
           <h1 className="section-title">Courses</h1>
           <p className="section-subtitle">Discover curated programs designed for every learning stage.</p>
         </div>
-        <div className="grid w-full gap-3 sm:w-auto sm:min-w-[420px] sm:grid-cols-[1fr,160px]">
+        <div className="grid w-full gap-3 md:w-auto md:min-w-[420px] md:grid-cols-[1fr,160px]">
           <Input
             label="Search courses"
             placeholder="Search by title, trainer, or description"
@@ -114,7 +114,7 @@ const Courses = () => {
 
       {/* ── skeleton ── */}
       {coursesQuery.isPending ? (
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {[0, 1, 2, 3].map((item) => (
             <div key={item} className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white dark:border-slate-800 dark:bg-slate-900">
               <div className="aspect-video w-full animate-pulse bg-slate-100 dark:bg-slate-800" />
@@ -140,7 +140,7 @@ const Courses = () => {
       ) : null}
 
       {/* ── course grid ── */}
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
         {filteredCourses.map((course) => {
           const isEnrolled = enrolledCourseIds.has(String(course.id))
           const lvl = getLevelConfig(course.level)
@@ -223,7 +223,7 @@ const Courses = () => {
                     as={Link}
                     to={isEnrolled ? `/member/courses/${course.id}` : `/member/courses/${course.id}?intent=enroll`}
                     size="sm"
-                    className="h-9 min-w-[148px] text-[13px]"
+                    className="h-9 sm:min-w-[148px] text-[13px]"
                   >
                     {isEnrolled ? 'Continue Learning' : 'Enroll Now'}
                   </Button>

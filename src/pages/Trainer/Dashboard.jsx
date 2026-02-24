@@ -65,7 +65,7 @@ const TrainerDashboard = () => {
       </div>
       {error ? <p className="status-error">{error}</p> : null}
       {dashboardQuery.isPending ? (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-3">
           {[0, 1, 2].map((metric) => (
             <Card key={metric}>
               <div className="h-3 w-1/2 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
@@ -75,7 +75,7 @@ const TrainerDashboard = () => {
         </div>
       ) : null}
       {!dashboardQuery.isPending ? (
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-3">
           {metrics.map((metric) => (
             <Card key={metric.label}>
               <p className="text-xs uppercase text-slate-400">{metric.label}</p>

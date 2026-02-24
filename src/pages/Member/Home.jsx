@@ -141,7 +141,7 @@ const Home = () => {
             <p className="text-[10.5px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
               Welcome back
             </p>
-            <h1 className="mt-1 text-2xl font-bold text-slate-900 dark:text-white" style={{ fontFamily: 'var(--font-display)' }}>
+            <h1 className="mt-2 text-2xl font-bold text-slate-900 dark:text-white" style={{ fontFamily: 'var(--font-display)' }}>
               {firstName}
             </h1>
           </div>
@@ -190,7 +190,7 @@ const Home = () => {
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white" style={{ fontFamily: 'var(--font-display)' }}>
                 Courses curated for you
               </h2>
-              <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+              <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
                 Review details, check difficulty, and enroll without extra steps.
               </p>
             </div>

@@ -81,7 +81,7 @@ const MyCourses = () => {
                 className="group !p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-18px_rgba(15,23,42,0.45)]"
               >
                 <div className="flex items-start gap-4">
-                  <div className="aspect-video h-[90px] w-40 shrink-0 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200/80 dark:bg-slate-800 dark:ring-slate-700/80">
+                  <div className="aspect-video h-20 w-28 shrink-0 sm:h-[90px] sm:w-40 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200/80 dark:bg-slate-800 dark:ring-slate-700/80">
                     {course?.thumbnailUrl ? (
                       <img
                         src={course.thumbnailUrl}
@@ -109,11 +109,11 @@ const MyCourses = () => {
 
                     <div className="flex items-center justify-end">
                       {item.courseId ? (
-                        <Button as={Link} to={`/member/courses/${item.courseId}`} size="sm" className="h-9 min-w-[132px]">
+                        <Button as={Link} to={`/member/courses/${item.courseId}`} size="sm" className="h-9 sm:min-w-[132px]">
                           Resume Learning
                         </Button>
                       ) : (
-                        <Button size="sm" variant="outline" disabled className="h-9 min-w-[132px]">
+                        <Button size="sm" variant="outline" disabled className="h-9 sm:min-w-[132px]">
                           Course unavailable
                         </Button>
                       )}

@@ -55,7 +55,7 @@ const AdminDashboard = () => {
         <p className="section-subtitle">Audit courses, review trainer proposals, and monitor member activity.</p>
       </div>
       {error ? <p className="status-error">{error}</p> : null}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.label}>
             <p className="text-xs uppercase text-slate-400">{stat.label}</p>
