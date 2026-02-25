@@ -26,6 +26,7 @@ import AdminDashboard from './pages/Admin/Dashboard'
 import UsersList from './pages/Admin/UsersList'
 import CoursesList from './pages/Admin/CoursesList'
 import TrainerApproval from './pages/Admin/TrainerApproval'
+import PaymentsDashboard from './pages/Admin/PaymentsDashboard'
 
 /* ── sidebar link configs ── */
 const memberSidebarLinks = [
@@ -48,6 +49,7 @@ const adminSidebarLinks = [
   { label: 'Users', to: '/admin/users', icon: 'users' },
   { label: 'Courses', to: '/admin/courses', icon: 'book' },
   { label: 'Trainer Approvals', to: '/admin/trainer-approvals', icon: 'badge' },
+  { label: 'Payments', to: '/admin/payments', icon: 'credit-card' },
 ]
 
 /* ── app shell — no sidebar (auth pages, guest) ── */
@@ -213,6 +215,7 @@ const router = createBrowserRouter([
       { path: 'users', element: <UsersList /> },
       { path: 'courses', element: <CoursesList /> },
       { path: 'trainer-approvals', element: <TrainerApproval /> },
+      { path: 'payments', element: <PaymentsDashboard /> },
     ],
   },
   { path: '*', element: <Navigate to="/login" replace /> },

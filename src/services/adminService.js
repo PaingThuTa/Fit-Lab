@@ -78,6 +78,41 @@ export async function getTrainerProposals() {
   return getMockState().trainerProposals
 }
 
+export async function getAdminPayments({
+  page = 1,
+  limit = 20,
+  search = '',
+  status = '',
+  dateFrom = '',
+  dateTo = '',
+} = {}) {
+  if (useApiMode) {
+    const payload = await apiRequest('/admin/payments', {
+      query: {
+        page,
+        limit,
+        search: search || undefined,
+        status: status || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+      },
+    });
+    return payload;
+  }
+  return {
+    payments: [],
+    pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
+    summary: {
+      totalCount: 0,
+      totalRevenue: 0,
+      paidCount: 0,
+      pendingCount: 0,
+      failedCount: 0,
+      refundedCount: 0,
+    },
+  };
+}
+
 export async function reviewTrainerProposal({ proposalId, action, rejectionReason }) {
   if (useApiMode) {
     const payload = await apiRequest(`/admin/trainer-proposals/${proposalId}`, {

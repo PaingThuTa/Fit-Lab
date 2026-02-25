@@ -10,5 +10,6 @@ router.get('/courses', controller.getCourses);
 router.get('/dashboard', controller.getDashboard);
 router.get('/trainer-proposals', controller.getTrainerProposals);
 router.patch('/trainer-proposals/:proposalId', controller.patchTrainerProposal);
+router.get('/payments', controller.getPayments);
 
 module.exports = router;

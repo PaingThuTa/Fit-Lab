@@ -2,6 +2,7 @@ const pool = require('../../config/db');
 const { listUsersWithProposalStatus } = require('../users/repository');
 const proposalsService = require('../proposals/service');
 const coursesRepository = require('../courses/repository');
+const paymentsRepository = require('../payments/repository');
 
 async function listUsers() {
   const rows = await listUsersWithProposalStatus();
@@ -57,10 +58,66 @@ async function decideTrainerProposal({ proposalId, action, reviewerId, rejection
   return proposalsService.decideProposal({ proposalId, action, reviewerId, rejectionReason });
 }
 
+async function listPayments(query) {
+  const page = Math.max(1, parseInt(query.page, 10) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(query.limit, 10) || 20));
+  const offset = (page - 1) * limit;
+
+  const [rows, summary] = await Promise.all([
+    paymentsRepository.findPaymentsAdmin({
+      search: query.search || null,
+      status: query.status || null,
+      memberId: query.memberId || null,
+      trainerId: query.trainerId || null,
+      courseId: query.courseId || null,
+      dateFrom: query.dateFrom || null,
+      dateTo: query.dateTo || null,
+      limit,
+      offset,
+    }),
+    paymentsRepository.getPaymentSummary(),
+  ]);
+
+  const total = rows.length > 0 ? parseInt(rows[0].total_count, 10) : 0;
+  const payments = rows.map((row) => ({
+    paymentId: row.id,
+    memberId: row.member_id,
+    memberName: row.member_name,
+    trainerId: row.trainer_id,
+    trainerName: row.trainer_name,
+    courseId: row.course_id,
+    courseName: row.course_name,
+    amount: row.amount,
+    currency: row.currency,
+    status: row.status,
+    cardLastFour: row.card_last_four,
+    createdAt: row.created_at,
+  }));
+
+  return {
+    payments,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+    summary: {
+      totalCount: parseInt(summary.total_count, 10),
+      totalRevenue: parseFloat(summary.total_revenue),
+      paidCount: parseInt(summary.paid_count, 10),
+      pendingCount: parseInt(summary.pending_count, 10),
+      failedCount: parseInt(summary.failed_count, 10),
+      refundedCount: parseInt(summary.refunded_count, 10),
+    },
+  };
+}
+
 module.exports = {
   listUsers,
   listCourses,
   getDashboard,
   listTrainerProposals,
   decideTrainerProposal,
+  listPayments,
 };

@@ -32,10 +32,16 @@ const patchTrainerProposal = asyncHandler(async (req, res) => {
   res.json({ proposal });
 });
 
+const getPayments = asyncHandler(async (req, res) => {
+  const result = await service.listPayments(req.query);
+  res.json(result);
+});
+
 module.exports = {
   getUsers,
   getCourses,
   getDashboard,
   getTrainerProposals,
   patchTrainerProposal,
+  getPayments,
 };
