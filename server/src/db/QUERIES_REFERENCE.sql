@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS messages (
   read_at     TIMESTAMPTZ
 );
 
--- A3.6  trainer_proposals — member applies → admin reviews
+-- trainer_proposals — member applies → admin reviews
 CREATE TABLE IF NOT EXISTS trainer_proposals (
   proposal_id      UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id          UUID            NOT NULL UNIQUE REFERENCES users(user_id) ON DELETE CASCADE,
@@ -103,8 +103,7 @@ CREATE TABLE IF NOT EXISTS trainer_proposals (
   updated_at       TIMESTAMPTZ     NOT NULL DEFAULT NOW()
 );
 
--- A3.7  payments — mock payment records (member pays for a course)
---        [005_payments.sql]
+ -- payments — mock payment records (member pays for a course)
 CREATE TABLE IF NOT EXISTS payments (
   id             UUID           PRIMARY KEY DEFAULT gen_random_uuid(),
   member_id      UUID           NOT NULL REFERENCES users(user_id)   ON DELETE CASCADE,
@@ -325,12 +324,8 @@ SET sender_id   = EXCLUDED.sender_id,
 -- ############################################################################
 -- Source: modules/users/repository.js, modules/auth/service.js
 
-
--- ============================================================================
--- B1  Find User by Email (Login)
---     users/repository.js → findUserByEmail()
--- ============================================================================
--- Parameters: $1 = email (case-insensitive match)
+-- Find user by email
+ 
 SELECT user_id, email, password_hash, full_name, role, created_at
 FROM users
 WHERE LOWER(email) = LOWER($1)
@@ -348,11 +343,9 @@ WHERE user_id = $1
 LIMIT 1;
 
 
--- ============================================================================
--- B3  Register — Create User
---     users/repository.js → createUser()
--- ============================================================================
--- Parameters: $1 = email, $2 = password_hash, $3 = full_name, $4 = role
+
+-- create/register user
+-- $1 = email, $2 = password_hash, $3 = full_name, $4 = role
 INSERT INTO users (email, password_hash, full_name, role)
 VALUES ($1, $2, $3, $4)
 RETURNING user_id, email, full_name, role, created_at;
@@ -507,9 +500,33 @@ COMMIT;
 --     All three fired in parallel via Promise.all()
 -- ============================================================================
 
--- D1.1  List trainer's own courses  (reuses E1 with trainerId filter)
---        courses/repository.js → listCourses({ trainerId })
--- See Section E1 with WHERE c.trainer_id = $1
+--  List trainer's own courses 
+WITH course_rows AS (
+  SELECT
+    c.course_id,
+    c.trainer_id,
+    c.name,
+    c.description,
+    c.category,
+    c.difficulty,
+    c.price,
+    c.thumbnail_url,
+    c.created_at,
+    u.full_name             AS trainer_name,
+    COUNT(e.member_id)::INT AS enrolled_count
+  FROM courses c
+  JOIN users u ON u.user_id = c.trainer_id
+  LEFT JOIN enrollments e ON e.course_id = c.course_id
+  WHERE c.trainer_id = $1
+  GROUP BY c.course_id, u.full_name
+)
+SELECT
+  course_rows.*,
+  COUNT(*) OVER()::INT AS total_count
+FROM course_rows
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;
+
 
 -- D1.2  Total enrollments across trainer's courses
 -- Parameters: $1 = trainer_id (UUID)
@@ -517,6 +534,7 @@ SELECT COUNT(*)::INT AS count
 FROM enrollments e
 JOIN courses c ON c.course_id = e.course_id
 WHERE c.trainer_id = $1;
+
 
 -- D1.3  Unique message-thread count
 -- Parameters: $1 = trainer_id (UUID)
@@ -536,20 +554,15 @@ WHERE sender_id = $1 OR receiver_id = $1;
 --     courses/service.js → createCourse()
 --     courses/repository.js → createCourse()
 -- ============================================================================
+
+-- Create Courses
 BEGIN;
 
--- D2.1  Insert the course
--- Parameters: $1 = trainer_id, $2 = name, $3 = description, $4 = category,
---             $5 = difficulty, $6 = price, $7 = thumbnail_url
 INSERT INTO courses (trainer_id, name, description, category, difficulty, price, thumbnail_url)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING course_id;
 
--- D2.2  Insert lessons (loop — see D4)
--- ...then COMMIT
-
 COMMIT;
--- (ROLLBACK on error)
 
 
 -- ============================================================================
@@ -648,10 +661,7 @@ ORDER BY e.enrolled_at DESC;
 --                         AND c.trainer_id = $2
 --   {paginationClause} → omitted, or: LIMIT $N OFFSET $M
 --
--- Parameters (vary based on filters):
---   $1 = search term wrapped in %% (e.g. '%yoga%')  — when query is provided
---   $N = trainer_id                                  — when trainerId filter active
---   $N = limit, $N+1 = offset                       — when paginating
+-- Get course rows with trainer name and enrolled count, applying optional filters,
 WITH course_rows AS (
   SELECT
     c.course_id,
@@ -679,12 +689,28 @@ ORDER BY created_at DESC
 -- {paginationClause}
 ;
 
+-- ── Concrete examples of the above query ──────────────────────────────────
+--
+-- (a) Member browsing all courses (no filters, with pagination):
+--     WHERE clause omitted, LIMIT $1 OFFSET $2
+--
+-- (b) Member text search:  query = 'yoga'
+--     WHERE (c.name ILIKE $1 OR c.description ILIKE $1 OR u.full_name ILIKE $1)
+--     values: ['%yoga%', 20, 0]
+--
+-- (c) Trainer's own courses (/trainer/courses):  mine=true
+--     WHERE c.trainer_id = $1
+--     LIMIT $2 OFFSET $3
+--     values: [trainer_uuid, 20, 0]
+--
+-- (d) Admin list all courses: no filters, no pagination
+--     WHERE clause omitted, LIMIT/OFFSET omitted
+-- ──────────────────────────────────────────────────────────────────────────
+
 
 -- ============================================================================
--- E2  Member — View Single Course Detail
---     courses/repository.js → findCourseById()
--- ============================================================================
--- Parameters: $1 = course_id (UUID)
+--  Member — View Single Course Detail
+
 SELECT
   c.course_id,
   c.trainer_id,
@@ -727,11 +753,8 @@ VALUES ($1, $2)
 ON CONFLICT (member_id, course_id) DO NOTHING;
 
 
--- ============================================================================
--- E5  Member — List My Enrollments
---     enrollments/repository.js → listMemberEnrollments()
--- ============================================================================
--- Parameters: $1 = member_id (UUID)
+-- Member — List My Enrollments
+
 SELECT
   e.member_id,
   e.course_id,
@@ -766,21 +789,20 @@ ORDER BY e.enrolled_at DESC;
 -- ============================================================================
 BEGIN;
 
--- E7.1  Insert payment record
--- Parameters: $1 = member_id, $2 = course_id, $3 = amount,
---             $4 = currency, $5 = status, $6 = card_last_four (nullable)
+--  Insert payment record
+
 INSERT INTO payments (member_id, course_id, amount, currency, status, card_last_four)
 VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
--- E7.2  Create enrollment in the same transaction
--- Parameters: $1 = member_id, $2 = course_id
+--   Create enrollment in the same transaction
+
 INSERT INTO enrollments (member_id, course_id)
 VALUES ($1, $2)
 ON CONFLICT (member_id, course_id) DO NOTHING;
 
 COMMIT;
--- (ROLLBACK on error)
+
 
 
 -- ############################################################################
@@ -843,11 +865,7 @@ RETURNING proposal_id;
 -- Source: modules/messaging/repository.js
 
 
--- ============================================================================
--- G1  List Conversation Threads (Inbox)
---     messaging/repository.js → listThreads()
--- ============================================================================
--- Parameters: $1 = user_id (UUID)
+--  List Conversation Threads (Inbox)
 -- Returns one row per unique (other_user, course) conversation with the last message
 WITH thread_base AS (
   SELECT
@@ -884,12 +902,8 @@ LEFT JOIN LATERAL (
 ORDER BY tb.last_sent_at DESC;
 
 
--- ============================================================================
--- G2  List Messages in a Thread
---     messaging/repository.js → listThreadMessages()
--- ============================================================================
--- Parameters: $1 = current user_id, $2 = other user_id
---             $3 = course_id (OPTIONAL — condition added dynamically in JS)
+-- List Messages in a Thread
+
 SELECT
   m.message_id,
   m.sender_id,
@@ -909,12 +923,8 @@ WHERE
   -- Dynamic: AND m.course_id = $3   (only when courseId is provided)
 ORDER BY m.sent_at ASC;
 
+-- Send a Message
 
--- ============================================================================
--- G3  Send a Message
---     messaging/repository.js → createMessage()
--- ============================================================================
--- Parameters: $1 = sender_id, $2 = receiver_id, $3 = course_id (nullable), $4 = content
 INSERT INTO messages (sender_id, receiver_id, course_id, content)
 VALUES ($1, $2, $3, $4)
 RETURNING message_id, sender_id, receiver_id, course_id, content, sent_at, read_at;
